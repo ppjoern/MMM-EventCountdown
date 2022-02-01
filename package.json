@@ -1,0 +1,18 @@
+{
+  "name": "MMM-EventCountdown",
+  "version": "1.0.0",
+  "description": "Count down to the next calendar event with numbers",
+  "main": "MMM-EventCountdown.js",
+  "author": "Björn Schustermann",
+  "license": "MIT",
+  "devDependencies": {
+    "grunt": "latest",
+    "grunt-eslint": "latest",
+    "grunt-jsonlint": "latest",
+    "grunt-markdownlint": "latest",
+    "grunt-stylelint": "latest",
+    "grunt-yamllint": "latest",
+    "stylelint-config-standard": "latest",
+    "time-grunt": "latest"
+  }
+}
