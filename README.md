@@ -29,7 +29,9 @@ This module is based on MMM-NextEvent.
 
 ```
 cd ~/MagicMirror/modules
-git clone https://github.com/ppjoern/MMM-EventCountdown
+git clone https://github.com/ppjoern/MMM-EventCountdown.git
+cd MMM-EventCountdown
+npm install
 ```
 
 ## Configuration
@@ -46,7 +48,7 @@ var config = {
             }
         }
     ]
-}
+},
 ```
 
 example configuration for MMM-CalendarExt2
