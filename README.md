@@ -1,21 +1,21 @@
 # MMM-EventCountdown
 
 ## Screenshot
-![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/screenshots/Screenshot_start_5r_green.png)
+![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/mainscreenshots/Screenshot_start_5r_green.png)
 
-![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/screenshots/Screenshot_start_r5_yellow.png)
+![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/mainscreenshots/Screenshot_start_r5_yellow.png)
 
-![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/master/screenshots/Screenshot_start_r5_orange.png)
+![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/main/screenshots/Screenshot_start_r5_orange.png)
 
-![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/master/screenshots/Screenshot_start_r4_red.png)
+![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/main/screenshots/Screenshot_start_r4_red.png)
 
-![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/master/screenshots/Screenshot_start_r3_red.png)
+![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/main/screenshots/Screenshot_start_r3_red.png)
 
-![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/master/screenshots/Screenshot_start_r2_red.png)
+![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/main/screenshots/Screenshot_start_r2_red.png)
 
-![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/master/screenshots/Screenshot_start_r1_red.png)
+![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/main/screenshots/Screenshot_start_r1_red.png)
 
-![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/master/screenshots/Screenshot_running_g5.png)
+![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/main/screenshots/Screenshot_running_g5.png)
 
 ## Description
 
