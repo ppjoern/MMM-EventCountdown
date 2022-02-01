@@ -1,9 +1,9 @@
 # MMM-EventCountdown
 
 ## Screenshot
-![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/mainscreenshots/Screenshot_start_5r_green.png)
+![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/main/screenshots/Screenshot_start_5r_green.png)
 
-![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/mainscreenshots/Screenshot_start_r5_yellow.png)
+![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/main/screenshots/Screenshot_start_r5_yellow.png)
 
 ![Screenshot](https://github.com/ppjoern/MMM-EventCountdown/blob/main/screenshots/Screenshot_start_r5_orange.png)
 
