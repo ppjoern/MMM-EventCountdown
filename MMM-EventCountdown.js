@@ -1,18 +1,17 @@
-Module.register("MMM-EventCountdown",{
+	Module.register("MMM-EventCountdown",{
 	// Default module config.
 	defaults: {
 		event: "Year 2030",
 		date: "2031-01-01",
-		showDays: true,
 		customInterval: 1000,
 		daysLabel: 'DAYS',
 		hoursLabel: 'HOURS',
 		minutesLabel: 'MINUTES',
 		secondsLabel: 'SECONDS',
+		startDate: 1893452400 ,
+		endDate: 1924988400,
+		showLight: false,
 		isRunning: false,
-		startDate: 1893456000 , 	// 01.01.2030 00:00:00
-		endDate: 1956527999,		// 31.12.2031 23:59:59
-		showLight: true,
 	},
 
 	// set update interval
@@ -21,45 +20,48 @@ Module.register("MMM-EventCountdown",{
 		self.getEvents();
 		setInterval(function() {
 			self.getEvents();
-			self.updateDom(); 	// no speed defined, so it updates instantly.
+			self.updateDom(); // no speed defined, so it updates instantly.
 		}, 
 		this.config.customInterval); 
 	},
 
 	updateDate: function(events) {
 		//Log.info(events);
-		var now = moment().format("X")	// now = Unix timestamp for current time
+		var now = moment().format("X") //(the number of seconds since the Unix Epoch 01.01.1970 0:00:00)
 		events.sort((a, b) => a.startDate.localeCompare(b.startDate))
-		if (typeof events[0] !== 'undefined') {	// if type of events is not undefined
-				this.config.event = events[0].title;	// title of the next event
-				this.config.startDate = events[0].startDate;	// start of the next event
-				this.config.endDate = events[0].endDate;	// end of the next event
+		if (typeof events[0] !== 'undefined') { 
+				this.config.event 		= events[0].title;		//title of the next event
+				this.config.startDate 	= events[0].startDate;	//start of next event
+				this.config.endDate 	= events[0].endDate;	//end if next event
 				//Log.info('Event Startdate :' + events[0].startDate);
 				//Log.info('Event Enddate :' + events[0].endDate);
-				if ((now >= events[0].startDate) && (now <= events[0].endDate)) {	// event is running
+
+				if ((now >= events[0].startDate) && (now <= events[0].endDate)) { //event is running
 						this.config.isRunning = true;
 						//Log.info('isRunning:' + this.config.isRunning);
-				} else if (now <= events[0].startDate) {	// next event is not started
+				} else if (now <= events[0].startDate) { //event not started
 						this.config.isRunning = false;
 						//Log.info('isRunning:' + this.config.isRunning);
 				}
+
 			} else if (typeof events[0] !== 'undefined') {
-				this.config.event = events[0].title;
-				this.config.startDate = events[0].startDateJ;
+				this.config.event 		= events[0].title;
+				this.config.startDate 	= events[0].startDateJ;
 		};	
-		this.updateDom();	// no speed defined, so it updates instantly.
+		this.updateDom(); // no speed defined, so it updates instantly.
 	},
 
 	getEvents: function() {
 		var self = this;
 		var now = moment().format("X");
 		var filterFn = (event) => {
-			// Do not consider all-day events. Consider only future or current events
+			// Do not consider all-day events. Only consider events that start in the future or are currently on.
 			if ((event.isFullday !== true) && (event.startDate > now) || (event.endDate > now)) return true
 			};
 		var callbackFn = (events) => {
 			this.updateDate(events)
 		};
+
 		this.sendNotification("CALEXT2_EVENT_QUERY", {filter:filterFn, callback:callbackFn})
 	},
 
@@ -67,17 +69,17 @@ Module.register("MMM-EventCountdown",{
 		return ["MMM-EventCountdown.css"]
 	},
 
-	getDom: function() {	// Update function
-		var self = this;
-		var event = this.config.event;
-		var isRunning = this.config.isRunning;
-		var eventStart = this.config.startDate;
-		var eventEnd = this.config.endDate;
+	// Update function
+	getDom: function() {
+		var self 		= this;
+		var isRunning 	= this.config.isRunning;
+		var eventStart 	= this.config.startDate;
+		var eventEnd 	= this.config.endDate;
 		
 		var now = Math.floor(new Date().getTime() / 1000);
-		//Log.info('Seconds since 1970 ' + now);
+		//Log.info('now <<current Time in Seconds since 1970>> ' + now);
 
-		//Countdown calculation until the start or until the end
+		//Countdown calculation
 		switch (isRunning){
 			case true:
 				var timeDiff = eventEnd - now;
@@ -87,182 +89,175 @@ Module.register("MMM-EventCountdown",{
 				var duration = eventEnd - eventStart;
 				break;
 		};
-		//Log.info('timeDiff: ' + timeDiff);
+		Log.info('timeDiff: ' + timeDiff);
 
-		var diffDays = Math.floor(timeDiff / (60 * 60 * 24));
-		var diffHours = Math.floor((timeDiff % (60 * 60 * 24)) / (60 * 60));
-		var diffMinutes = Math.floor((timeDiff % (60 * 60)) / (60));
-		var diffSeconds = Math.floor((timeDiff % 60));
+		var diffDays 	= Math.floor(timeDiff / (60 * 60 * 24));
+		var diffHours 	= Math.floor(timeDiff % (60 * 60 * 24) / (60 * 60));
+		var diffMinutes = Math.floor(timeDiff % (60 * 60) / 60);
+		var diffSeconds = Math.floor(timeDiff % 60);
 
-		var wrapper = document.createElement("div"); //div container build
+		var wrapper = document.createElement("div"); 						//build container for table
 
-		var wrapperTable = document.createElement("table"); 
-		wrapperTable.className = "table";
+		var wrapperTable = document.createElement("tableCountdown"); 		//Tabelle erstellen
+			wrapperTable.className = "tableCountdown"; 						//Tabelleneigneschaften festlegen
 
-		var titleRow = document.createElement("tr");
-		titleRow.className = "align-center bright light tHead";
+		var headRow = document.createElement("tr"); 						//neue Tabellenzeile
+		var headCell = document.createElement("th"); 						//new Tablehead
+			headCell.className ="light tableHead";							//Formatierungen fuer den Titel mit dem Event
+			headCell.colSpan = "3"; 
 
-		var titleCell = document.createElement("td");
-		titleCell.className ="tHead";
-
-		var withDays = (this.config.showDays === true && diffDays >= 1);	// Show the days or not, if not the days are added to the hours
-		//Log.info('withDays ' + withDays);
-
-		if (withDays === true) { titleCell.colSpan = "4"; }		// Connect 4 columns
-		if (withDays === false) { titleCell.colSpan = "3"; }	// Connect 3 columns
+		var titleRow = document.createElement("tr"); 						//neue Tabellenzeile
+		var titleCell = document.createElement("td"); 						//neue Variable im Format Tabellendata
+			titleCell.className ="light dimmed tableFooterlow"; //Formatierungen fuer 'starts' oder 'is running'
+			titleCell.colSpan = "3";
 
 		var currentEvent = this.config.event;
 		currentEvent = currentEvent.toUpperCase();
+		headCell.innerHTML += currentEvent
 
 		switch (isRunning){
 			case true:
-				titleCell.innerHTML += "'" + currentEvent + "' is running";
+				titleCell.innerHTML += "is running";
 				break;
 			case false:
-				titleCell.innerHTML += "'" + currentEvent + "' starts in";
+				titleCell.innerHTML += "starts in";
 				break;
 			default:
-				titleCell.innerHTML = "No scheduled event!";	// if no event is entered in the calendar
+				titleCell.innerHTML = "No scheduled event!"; //wenn kein Event im Kalender eingetragen ist
 				break;
 		};
 
+		headRow.appendChild(headCell);
 		titleRow.appendChild(titleCell);
+		wrapperTable.appendChild(headRow);
 		wrapperTable.appendChild(titleRow);
 
-		if (withDays === false) {
-			diffHours = diffHours + (diffDays * 24);
-		};
+		var timeRow = document.createElement("tr"); 		//row for the countdown
 
-		var timeRow = document.createElement("tr");
+		var countdownCell_1 = document.createElement("td"); 
+		var countdownCell_2 = document.createElement("td");
+		var countdownCell_3 = document.createElement("td");
 
-		if (withDays === true) { 
-			var daysCell = document.createElement("td");
-			daysCell.className = "tTime timeFont thin";
-			daysCell.innerHTML = diffDays;
-			timeRow.appendChild(daysCell);
-		};
-
-		var hoursCell = document.createElement("td"); 
-		var minutesCell = document.createElement("td");
-		var secondsCell = document.createElement("td");
-
-		hoursCell.className = "tTime timeFont thin";
-		minutesCell.className = "tTime timeFont thin";
-		secondsCell.className = "tTime timeFont thin";
+		countdownCell_1.className 	= "tableTime thin";
+		countdownCell_2.className 	= "tableTime thin";
+		countdownCell_3.className 	= "tableTime thin";
 
 		const remainTime1 = 60 * 60 * 24; 	// 24h
 		const remainTime2 = 60 * 60 * 1; 	// 1h
 		const remainTime3 = 60 * 20;		// 20min
 		const remainTime4 = 60 * 5;			// 5min
 
-		if ((timeDiff < remainTime1) && (isRunning === false)) {	//less than 24h
-			var cellColor = "lime";
-			if (withDays === true) { daysCell.style.color = cellColor; }
-			hoursCell.style.color = cellColor;
-			minutesCell.style.color = cellColor;
-			secondsCell.style.color = cellColor;
+		if ((timeDiff < remainTime1) && (isRunning === false)) { //less than 24h
+			var cellColor = "#00ff00"; //Springgreen
+/*			countdownCell_1.style.color = cellColor;*/
 		};
 
-		if ((timeDiff < remainTime2) && (timeDiff > remainTime3) && (isRunning === false)) { 	// less than 1h and more than 20 minutes
-			var cellColor = "yellow";
-			if (withDays === true) { daysCell.style.color = cellColor; }
-			hoursCell.style.color = cellColor;
-			minutesCell.style.color = cellColor;
-			secondsCell.style.color = cellColor;
+		if ((timeDiff < remainTime2) && (timeDiff > remainTime3) && (isRunning === false)) { //less than 1h and more than 20 minutes
+			var cellColor = "#ffff00";
 		};
 
-		if ((timeDiff < remainTime3) && (timeDiff > remainTime4) && (isRunning === false)) { 	// less than 20 minutes more than 5
-			var cellColor = "orange";
-			if (withDays === true) { daysCell.style.color = cellColor; }
-			hoursCell.style.color = cellColor;
-			minutesCell.style.color = cellColor;
-			secondsCell.style.color = cellColor;
+		if ((timeDiff < remainTime3) && (timeDiff > remainTime4) && (isRunning === false)) { //less than 20 minutes more than 5
+			var cellColor = "#ff9966";
 		};
 
-		if (timeDiff <= remainTime4 && (isRunning === false)) { 	// less than 5 minutes
-			var cellColor = "red";
-			if (withDays === true) { daysCell.style.color = cellColor; }
-			hoursCell.style.color = cellColor;
-			minutesCell.style.color = cellColor;
-			secondsCell.style.color = cellColor;
+		if (timeDiff <= remainTime4 && (isRunning === false)) { //less than 5 minutes
+			var cellColor = "#ff6600";
 		};
 
+		if (isRunning === true) { //if the event is ongoing
+			var cellColor = "#ffffff";
+		};
+
+		/*Log.info(cellColor);*/
+			countdownCell_1.style.color = cellColor;
+			countdownCell_2.style.color = cellColor;
+			countdownCell_3.style.color = cellColor;
+
+		if ((diffHours < 10)) { diffHours = "0" + diffHours;}
 		if ((diffMinutes < 10)) { diffMinutes = "0" + diffMinutes; }
 		if ((diffSeconds < 10)) { diffSeconds = "0" + diffSeconds; }
 
-		hoursCell.innerHTML = diffHours;
-		minutesCell.innerHTML = diffMinutes;
-		secondsCell.innerHTML = diffSeconds;
-
-		timeRow.appendChild(hoursCell);
-		timeRow.appendChild(minutesCell);
-		timeRow.appendChild(secondsCell);
-		wrapperTable.appendChild(timeRow);
-
-		if (withDays === true) { 
-			var bottomDaysCell = document.createElement("td");
-			bottomDaysCell.className = "align-center tBottom small light dimmed";
-			bottomDaysCell.innerHTML = this.config.daysLabel;
-			wrapperTable.appendChild(bottomDaysCell);
+		if (diffDays > 0) {
+			countdownCell_1.innerHTML 	= diffDays;
+			countdownCell_2.innerHTML 	= diffHours;
+			countdownCell_3.innerHTML 	= diffMinutes;	
 		};
 
-		var bottomHoursCell = document.createElement("td");
-		var bottomMinutesCell = document.createElement("td");
-		var bottomSecondsCell = document.createElement("td");
+		if (diffDays < 1) {
+			countdownCell_1.innerHTML 	= diffHours;
+			countdownCell_2.innerHTML 	= diffMinutes;
+			countdownCell_3.innerHTML 	= diffSeconds;	
+		};
+		
+		timeRow.appendChild(countdownCell_1);
+		timeRow.appendChild(countdownCell_2);
+		timeRow.appendChild(countdownCell_3);
+		wrapperTable.appendChild(timeRow);
 
-		bottomHoursCell.className = "align-center tBottom small light dimmed";
-		bottomMinutesCell.className = "align-center tBottom small light dimmed";
-		bottomSecondsCell.className = "align-center tBottom small light dimmed";
+		var labelCell_1 = document.createElement("td");
+		var labelCell_2 = document.createElement("td");
+		var labelCell_3 = document.createElement("td");
 
-		bottomHoursCell.innerHTML = this.config.hoursLabel;
-		bottomMinutesCell.innerHTML = this.config.minutesLabel;	
-		bottomSecondsCell.innerHTML = this.config.secondsLabel;
+		labelCell_1.className = "tableFooter light dimmed";
+		labelCell_2.className = "tableFooter light dimmed";
+		labelCell_3.className = "tableFooter light dimmed";
 
-		wrapperTable.appendChild(bottomHoursCell);
-		wrapperTable.appendChild(bottomMinutesCell);
-		wrapperTable.appendChild(bottomSecondsCell);
+		if (diffDays > 0) {
+			labelCell_1.innerHTML = this.config.daysLabel;
+			labelCell_2.innerHTML = this.config.hoursLabel;	
+			labelCell_3.innerHTML = this.config.minutesLabel;
+		};
 
-		// Integrate traffic light
+		if (diffDays < 1) {
+			labelCell_1.innerHTML = this.config.hoursLabel;
+			labelCell_2.innerHTML = this.config.minutesLabel;	
+			labelCell_3.innerHTML = this.config.secondsLabel;
+		};
+
+		wrapperTable.appendChild(labelCell_1);
+		wrapperTable.appendChild(labelCell_2);
+		wrapperTable.appendChild(labelCell_3);
+
+		//Ampel integrieren
 		var showLight = this.config.showLight;
 
 		if (showLight === true) {
-				//Log.info ("ShowLight = true);
-				var remainMinutes = Math.floor(timeDiff / 60); // Remaining minutes until event start
+				//Log.info ("ShowLight true");
+				var remainMinutes = Math.floor(timeDiff / 60); //Remaining Minutes until Event Start
 
 				var lightRow = document.createElement("tr");
-				lightRow.className = "alight-right bright light tTime";	// Table row format preset
+				lightRow.className = "tableTime"; //Formatvorgabe Tabellenzeile
 
 				var lightCell = document.createElement("td");
-				lightCell.className = "tHead";
+				lightCell.className = "tableHead";
 
-				if (withDays === true) { lightCell.colSpan = "4"; }  // Connect 4 columns
-				if (withDays === false) { lightCell.colSpan = "3"; } // Connect 3 columns
+				lightCell.colSpan = "3";	//3 Spalten verbinden
 
+				var lightHeight = 85; //height of the traffic light
 				switch(isRunning){
 					case true:
 						//Log.info ('Is Running');
-						//Log.info ("Remaining minutes " + remainMinutes);
 						if (remainMinutes <= 3) {
-							lightCell.innerHTML = "<img src='modules/MMM-EventCountdown/images/lights_g" + (remainMinutes + 1) + ".png' height='85'>";
+							lightCell.innerHTML = "<img src='modules/MMM-EventCountdown/images/lights_g" + (remainMinutes + 1) + ".png' height=" + lightHeight + "px>";
 							} else {
-							lightCell.innerHTML = "<img src='modules/MMM-EventCountdown/images/lights_g5.png' height='85'>";	
+							lightCell.innerHTML = "<img src='modules/MMM-EventCountdown/images/lights_g5.png' height=" + lightHeight + "px>";	
 						};
 						break;
 
 					case false:
 						//Log.info ('Is Not Running');
-						//Log.info ("Remaining minutes " + remainMinutes);
+						//Log.info ("Remaining Minutes " + remainMinutes);
 						if (remainMinutes <= 3) {
-							lightCell.innerHTML = "<img src='modules/MMM-EventCountdown/images/lights_r" + (remainMinutes + 1) + ".png' height='85'>";
+							lightCell.innerHTML = "<img src='modules/MMM-EventCountdown/images/lights_r" + (remainMinutes + 1) + ".png' height=" + lightHeight + "px>";
 							} else {
-							lightCell.innerHTML = "<img src='modules/MMM-EventCountdown/images/lights_r5.png' height='85'>";	
+							lightCell.innerHTML = "<img src='modules/MMM-EventCountdown/images/lights_r5.png' height=" + lightHeight + "px>";	
 						};
 						break;
 				};	
 		 		lightRow.appendChild(lightCell);
 		 		wrapperTable.appendChild(lightRow);
 		 	};
-		wrapper.appendChild(wrapperTable);	//send to wrapper
+		wrapper.appendChild(wrapperTable); //alles was in die wrapprerTable geschrieben wurde, an den wrapper übergeben
 		return wrapper;
 	},
 });
