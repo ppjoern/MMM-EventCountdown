@@ -108,7 +108,7 @@
 
 		var titleRow = document.createElement("tr"); 						//neue Tabellenzeile
 		var titleCell = document.createElement("td"); 						//neue Variable im Format Tabellendata
-			titleCell.className ="tableFooter light dimmed tableFooterlow"; //Formatierungen fuer 'starts' oder 'is running'
+			titleCell.className ="light dimmed tableFooterlow"; 			//Formatierungen fuer 'starts' oder 'is running'
 			titleCell.colSpan = "3";
 
 		var currentEvent = this.config.event;
