@@ -71,10 +71,10 @@
 
 	// Update function
 	getDom: function() {
-		var self 		= this;
-		var isRunning 	= this.config.isRunning;
-		var eventStart 	= this.config.startDate;
-		var eventEnd 	= this.config.endDate;
+		var self = this;
+		var isRunning = this.config.isRunning;
+		var eventStart = this.config.startDate;
+		var eventEnd = this.config.endDate;
 		
 		var now = Math.floor(new Date().getTime() / 1000);
 		//Log.info('now <<current Time in Seconds since 1970>> ' + now);
@@ -98,8 +98,8 @@
 
 		var wrapper = document.createElement("div"); 						//build container for table
 
-		var wrapperTable = document.createElement("tableCountdown"); 		//Tabelle erstellen
-			wrapperTable.className = "tableCountdown"; 						//Tabelleneigneschaften festlegen
+		var wrapperTable = document.createElement("tableCountdown"); 		//create table
+			wrapperTable.className = "tableCountdown"; 						//styles for table
 
 		var headRow = document.createElement("tr"); 						//neue Tabellenzeile
 		var headCell = document.createElement("th"); 						//new Tablehead
@@ -108,7 +108,7 @@
 
 		var titleRow = document.createElement("tr"); 						//neue Tabellenzeile
 		var titleCell = document.createElement("td"); 						//neue Variable im Format Tabellendata
-			titleCell.className ="light dimmed tableFooterlow"; //Formatierungen fuer 'starts' oder 'is running'
+			titleCell.className ="tableFooter light dimmed tableFooterlow"; //Formatierungen fuer 'starts' oder 'is running'
 			titleCell.colSpan = "3";
 
 		var currentEvent = this.config.event;
@@ -132,61 +132,60 @@
 		wrapperTable.appendChild(headRow);
 		wrapperTable.appendChild(titleRow);
 
-		var timeRow = document.createElement("tr"); 		//row for the countdown
+		var timeRow = document.createElement("tr"); //row for the countdown
 
 		var countdownCell_1 = document.createElement("td"); 
 		var countdownCell_2 = document.createElement("td");
 		var countdownCell_3 = document.createElement("td");
 
-		countdownCell_1.className 	= "tableTime thin";
-		countdownCell_2.className 	= "tableTime thin";
-		countdownCell_3.className 	= "tableTime thin";
+		countdownCell_1.className = "tableTime thin";
+		countdownCell_2.className = "tableTime thin";
+		countdownCell_3.className = "tableTime thin";
 
-		const remainTime1 = 60 * 60 * 24; 	// 24h
-		const remainTime2 = 60 * 60 * 1; 	// 1h
-		const remainTime3 = 60 * 20;		// 20min
-		const remainTime4 = 60 * 5;			// 5min
+		const REMAINING_TIME_1 = 60 * 60 * 24; 	// 24h
+		const REMAINING_TIME_2 = 60 * 60 * 1; 	// 1h
+		const REMAINING_TIME_3 = 60 * 20;		// 20min
+		const REMAINING_TIME_4 = 60 * 5;		// 5min
 
-		if ((timeDiff < remainTime1) && (isRunning === false)) { //less than 24h
+		if ((timeDiff < REMAINING_TIME_1) && (isRunning === false)) { //less than 24h
 			var cellColor = "#00ff00"; //Springgreen
-/*			countdownCell_1.style.color = cellColor;*/
 		};
 
-		if ((timeDiff < remainTime2) && (timeDiff > remainTime3) && (isRunning === false)) { //less than 1h and more than 20 minutes
+		if ((timeDiff < REMAINING_TIME_2) && (timeDiff > REMAINING_TIME_3) && (isRunning === false)) { //less than 1h and more than 20 minutes
 			var cellColor = "#ffff00";
 		};
 
-		if ((timeDiff < remainTime3) && (timeDiff > remainTime4) && (isRunning === false)) { //less than 20 minutes more than 5
+		if ((timeDiff < REMAINING_TIME_3) && (timeDiff > REMAINING_TIME_4) && (isRunning === false)) { //less than 20 minutes more than 5
 			var cellColor = "#ff9966";
 		};
 
-		if (timeDiff <= remainTime4 && (isRunning === false)) { //less than 5 minutes
+		if (timeDiff <= REMAINING_TIME_4 && (isRunning === false)) { //less than 5 minutes
 			var cellColor = "#ff6600";
 		};
 
-		if (isRunning === true) { //if the event is ongoing
+		if (isRunning === true) { //if the event is eunning
 			var cellColor = "#ffffff";
 		};
 
-		/*Log.info(cellColor);*/
 			countdownCell_1.style.color = cellColor;
 			countdownCell_2.style.color = cellColor;
 			countdownCell_3.style.color = cellColor;
 
+		if ((diffDays < 10)) { diffDays = "0" + diffDays;}
 		if ((diffHours < 10)) { diffHours = "0" + diffHours;}
 		if ((diffMinutes < 10)) { diffMinutes = "0" + diffMinutes; }
 		if ((diffSeconds < 10)) { diffSeconds = "0" + diffSeconds; }
 
 		if (diffDays > 0) {
-			countdownCell_1.innerHTML 	= diffDays;
-			countdownCell_2.innerHTML 	= diffHours;
-			countdownCell_3.innerHTML 	= diffMinutes;	
+			countdownCell_1.innerHTML = diffDays;
+			countdownCell_2.innerHTML = diffHours;
+			countdownCell_3.innerHTML = diffMinutes;	
 		};
 
 		if (diffDays < 1) {
-			countdownCell_1.innerHTML 	= diffHours;
-			countdownCell_2.innerHTML 	= diffMinutes;
-			countdownCell_3.innerHTML 	= diffSeconds;	
+			countdownCell_1.innerHTML = diffHours;
+			countdownCell_2.innerHTML = diffMinutes;
+			countdownCell_3.innerHTML = diffSeconds;	
 		};
 		
 		timeRow.appendChild(countdownCell_1);
@@ -203,13 +202,13 @@
 		labelCell_3.className = "tableFooter light dimmed";
 
 		if (diffDays > 0) {
-			labelCell_1.innerHTML = this.config.daysLabel;
+			labelCell_1.innerHTML = this.config.daysLabel + "<p>";
 			labelCell_2.innerHTML = this.config.hoursLabel;	
 			labelCell_3.innerHTML = this.config.minutesLabel;
 		};
 
 		if (diffDays < 1) {
-			labelCell_1.innerHTML = this.config.hoursLabel;
+			labelCell_1.innerHTML = this.config.hoursLabel + "<p>";
 			labelCell_2.innerHTML = this.config.minutesLabel;	
 			labelCell_3.innerHTML = this.config.secondsLabel;
 		};
@@ -218,7 +217,7 @@
 		wrapperTable.appendChild(labelCell_2);
 		wrapperTable.appendChild(labelCell_3);
 
-		//Ampel integrieren
+		//traffic light integration
 		var showLight = this.config.showLight;
 
 		if (showLight === true) {
@@ -257,7 +256,7 @@
 		 		lightRow.appendChild(lightCell);
 		 		wrapperTable.appendChild(lightRow);
 		 	};
-		wrapper.appendChild(wrapperTable); //alles was in die wrapprerTable geschrieben wurde, an den wrapper übergeben
+		wrapper.appendChild(wrapperTable);
 		return wrapper;
 	},
 });
