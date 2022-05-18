@@ -13,6 +13,7 @@
 }
 
 .tableHead{
+    border: 0px solid green;
     color: #ffffff; /*Weiss*/ 
     border-collapse: collapse;
     border-spacing: 0px;
@@ -21,15 +22,14 @@
 }
 
 .tableTime{
-    /*border: 1px solid green;*/
+    border: 0px solid green;
     border-collapse: collapse;
     border-spacing: 0px;
     color: #ffffff; /* white */
-    font-size: 5rem;
+    font-size: 7.0rem;
     line-height: 1em;
     letter-spacing: -3px;
-    border: 0px solid red;
-    width: 7.5rem;
+    width: 9rem;
 }
 
 .tableFooter{
@@ -38,8 +38,8 @@
     font-size: 1.2rem;
     align-content: center;
     text-align: center;
-    height: 8em;
-    /*line-height: 500%;*/
+    /*height: 2em;*/
+    height: 500%;
     text-align: center;
     vertical-align: top;
 }
@@ -54,4 +54,8 @@
     /*line-height: 500%;*/
     text-align: center;
     vertical-align: middle;
+}
+
+.countdown1{
+    .color: #327da8; /*graublau*/
 }
