@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Count down to the next calendar event with numbers",
   "main": "MMM-EventCountdown.js",
-  "author": "Björn Schustermann",
+  "author": "ppjoern,
   "license": "MIT",
   "devDependencies": {
     "grunt": "latest",
