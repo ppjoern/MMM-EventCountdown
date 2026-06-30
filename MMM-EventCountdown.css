@@ -46,29 +46,16 @@
 
 .event-countdown__timer {
 	display: flex;
-	flex-direction: column;
-	align-items: center;
+	flex-direction: row;
+	justify-content: center;
+	align-items: flex-start;
+	flex-wrap: nowrap;
 	font-size: var(--countdown-value-size);
+	gap: var(--countdown-group-gap);
 	line-height: 1;
 }
 
-.event-countdown__values-line,
-.event-countdown__labels-line {
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
-	align-items: flex-end;
-	flex-wrap: nowrap;
-	gap: var(--countdown-group-gap);
-}
-
-.event-countdown__labels-line {
-	align-items: flex-start;
-	margin-top: 0.12em;
-	font-size: var(--countdown-value-size);
-}
-
-.event-countdown__unit {
+.event-countdown__column {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -94,9 +81,11 @@
 .event-countdown__label {
 	font-size: calc(1em * var(--countdown-label-ratio));
 	line-height: 1.2;
+	margin-top: 0.12em;
 	text-align: center;
 	white-space: nowrap;
 	width: 100%;
+	overflow: visible;
 }
 
 .event-countdown__colon {
@@ -104,11 +93,7 @@
 	font-weight: 100;
 	line-height: 1;
 	flex: 0 0 auto;
-}
-
-.event-countdown__colon-spacer {
-	flex: 0 0 auto;
-	width: 1ch;
+	align-self: flex-start;
 }
 
 .event-countdown__light {
@@ -120,61 +105,4 @@
 	width: auto;
 	max-width: 100%;
 	object-fit: contain;
-}
-
-/* Debug-Rahmen: showDebugBorders: true in config.js */
-.event-countdown--debug {
-	border: 3px solid #ff0000 !important;
-	box-sizing: border-box;
-}
-
-.event-countdown--debug .event-countdown__title {
-	border: 2px dashed #ff8800 !important;
-}
-
-.event-countdown--debug .event-countdown__subtitle {
-	border: 2px dashed #ff44aa !important;
-}
-
-.event-countdown--debug .event-countdown__timer {
-	border: 3px solid #0088ff !important;
-	background: rgba(0, 136, 255, 0.12) !important;
-}
-
-.event-countdown--debug .event-countdown__values-line {
-	border: 2px solid #00ccff !important;
-	background: rgba(0, 204, 255, 0.08) !important;
-}
-
-.event-countdown--debug .event-countdown__labels-line {
-	border: 2px solid #aa00ff !important;
-	background: rgba(170, 0, 255, 0.08) !important;
-}
-
-.event-countdown--debug .event-countdown__unit {
-	border: 2px solid #00cc00 !important;
-	background: rgba(0, 204, 0, 0.1) !important;
-}
-
-.event-countdown--debug .event-countdown__value {
-	border: 1px solid #ffff00 !important;
-	background: rgba(255, 255, 0, 0.15) !important;
-}
-
-.event-countdown--debug .event-countdown__label {
-	border: 1px solid #cc66ff !important;
-	background: rgba(204, 102, 255, 0.15) !important;
-}
-
-.event-countdown--debug .event-countdown__colon {
-	border: 2px solid #00ffff !important;
-	background: rgba(0, 255, 255, 0.2) !important;
-}
-
-.event-countdown--debug .event-countdown__colon-spacer {
-	border: 1px dotted #00ffff !important;
-}
-
-.event-countdown--debug .event-countdown__light {
-	border: 2px solid #ffffff !important;
 }

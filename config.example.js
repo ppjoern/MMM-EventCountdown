@@ -41,7 +41,6 @@
 		unitWidth: 2.5,
 		size: "medium",
 		groupGap: 1,
-		showDebugBorders: false,
 
 		// --- Beschriftungen ---
 		daysLabel: "DAYS",
