@@ -39,7 +39,8 @@
 		showColons: false,
 		useUrgencyColors: true,
 		unitWidth: 2.5,
-		size: "medium",
+		size: "xlarge",          // "small" | "medium" | "large" | "xlarge" (empfohlen für 4K)
+		// valueSize: "14rem",  // optional: feste Größe, überschreibt size
 		groupGap: 1,
 
 		// --- Beschriftungen ---

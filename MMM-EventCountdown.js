@@ -30,7 +30,8 @@ Module.register("MMM-EventCountdown", {
 		hoursLabel: "HOURS",
 		minutesLabel: "MINUTES",
 		secondsLabel: "SECONDS",
-		size: "medium",            // "small" | "medium" | "large"
+		size: "medium",            // "small" | "medium" | "large" | "xlarge" (4K)
+		valueSize: null,           // optional: eigene Größe z. B. "12rem" (überschreibt size)
 		groupGap: 1,               // Abstand zwischen Zahlengruppen in "0"-Breiten (1ch)
 		noEventText: "NO SCHEDULED EVENT!",
 		runningText: "is running",

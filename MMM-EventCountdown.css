@@ -1,11 +1,12 @@
 /*
  * MMM-EventCountdown – Responsives Layout
+ * Skaliert mit vmin – auf 4K-Monitoren automatisch größer
  */
 
 .event-countdown {
-	--countdown-value-size: 7rem;
-	--countdown-title-size: 2rem;
-	--countdown-subtitle-size: 1.2rem;
+	--countdown-value-size: clamp(7rem, 5.5vmin, 14rem);
+	--countdown-title-size: calc(var(--countdown-value-size) * 0.286);
+	--countdown-subtitle-size: calc(var(--countdown-value-size) * 0.171);
 	--countdown-label-ratio: 0.171;
 	--countdown-digit-tight: -0.043em;
 	--countdown-group-gap: 1ch;
@@ -16,15 +17,15 @@
 }
 
 .event-countdown--small {
-	--countdown-value-size: 4.9rem;
-	--countdown-title-size: 1.4rem;
-	--countdown-subtitle-size: 0.84rem;
+	--countdown-value-size: clamp(4.9rem, 4vmin, 9rem);
 }
 
 .event-countdown--large {
-	--countdown-value-size: 9.1rem;
-	--countdown-title-size: 2.6rem;
-	--countdown-subtitle-size: 1.56rem;
+	--countdown-value-size: clamp(9.1rem, 7vmin, 16rem);
+}
+
+.event-countdown--xlarge {
+	--countdown-value-size: clamp(11rem, 9vmin, 22rem);
 }
 
 .event-countdown__title {
@@ -101,7 +102,8 @@
 }
 
 .event-countdown__light-img {
-	height: 85px;
+	height: calc(var(--countdown-value-size) * 1.2);
+	max-height: 22vmin;
 	width: auto;
 	max-width: 100%;
 	object-fit: contain;
