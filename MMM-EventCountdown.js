@@ -23,11 +23,15 @@ Module.register("MMM-EventCountdown", {
 
 		// --- Anzeige ---
 		showLight: false,
+		showColons: false,         // Doppelpunkte zwischen den Zahlengruppen (z. B. 05:23:45)
 		daysLabel: "DAYS",
 		hoursLabel: "HOURS",
 		minutesLabel: "MINUTES",
 		secondsLabel: "SECONDS",
 		size: "medium",            // "small" | "medium" | "large"
+		noEventText: "NO SCHEDULED EVENT!",
+		runningText: "is running",
+		startsInText: "starts in",
 
 		// --- Fallback wenn kein Event gefunden ---
 		event: "Kein Event",
@@ -123,11 +127,13 @@ Module.register("MMM-EventCountdown", {
 
 	getDom () {
 		const wrapper = document.createElement("div");
-		wrapper.className = `event-countdown event-countdown--${this.config.size || "medium"}`;
+		const size = this.config.size || "medium";
+		const colonClass = this.config.showColons ? "event-countdown--colons" : "event-countdown--no-colons";
+		wrapper.className = `event-countdown event-countdown--${size} ${colonClass}`;
 
 		if (!this.eventState.hasEvent) {
-			wrapper.appendChild(this.createTextElement("div", "event-countdown__title", "NO SCHEDULED EVENT!"));
-			wrapper.appendChild(this.createTextElement("div", "event-countdown__subtitle", ""));
+			wrapper.appendChild(this.createTextElement("div", "event-countdown__title light", this.config.noEventText));
+			wrapper.appendChild(this.createTextElement("div", "event-countdown__subtitle light dimmed", ""));
 			return wrapper;
 		}
 
@@ -138,12 +144,11 @@ Module.register("MMM-EventCountdown", {
 
 		const timeDiff = isRunning ? eventEnd - now : eventStart - now;
 
-		// Titel – textContent statt innerHTML (XSS-Schutz)
-		const titleEl = this.createTextElement("div", "event-countdown__title", (this.eventState.title || "").toUpperCase());
+		const titleEl = this.createTextElement("div", "event-countdown__title light", (this.eventState.title || "").toUpperCase());
 		wrapper.appendChild(titleEl);
 
-		const subtitleText = isRunning ? "is running" : "starts in";
-		wrapper.appendChild(this.createTextElement("div", "event-countdown__subtitle", subtitleText));
+		const subtitleText = isRunning ? this.config.runningText : this.config.startsInText;
+		wrapper.appendChild(this.createTextElement("div", "event-countdown__subtitle light dimmed", subtitleText));
 
 		const diffDays = Math.floor(timeDiff / 86400);
 		const diffHours = Math.floor((timeDiff % 86400) / 3600);
@@ -152,10 +157,11 @@ Module.register("MMM-EventCountdown", {
 
 		const color = this.getCountdownColor(timeDiff, isRunning);
 
-		const timerRow = document.createElement("div");
-		timerRow.className = "event-countdown__timer";
+		const timerBlock = document.createElement("div");
+		timerBlock.className = "event-countdown__timer";
 
-		let values, labels;
+		let values;
+		let labels;
 		if (diffDays > 0) {
 			values = [diffDays, diffHours, diffMinutes];
 			labels = [this.config.daysLabel, this.config.hoursLabel, this.config.minutesLabel];
@@ -164,11 +170,32 @@ Module.register("MMM-EventCountdown", {
 			labels = [this.config.hoursLabel, this.config.minutesLabel, this.config.secondsLabel];
 		}
 
+		const valuesRow = document.createElement("div");
+		valuesRow.className = "event-countdown__values-row";
+
 		for (let i = 0; i < 3; i++) {
-			timerRow.appendChild(this.createUnit(String(values[i]).padStart(2, "0"), labels[i], color));
+			if (i > 0 && this.config.showColons) {
+				const sep = this.createTextElement("span", "event-countdown__separator thin", ":");
+				sep.style.color = color;
+				valuesRow.appendChild(sep);
+			}
+
+			const valueEl = this.createTextElement("span", "event-countdown__value thin", String(values[i]).padStart(2, "0"));
+			valueEl.style.color = color;
+			valuesRow.appendChild(valueEl);
 		}
 
-		wrapper.appendChild(timerRow);
+		timerBlock.appendChild(valuesRow);
+
+		const labelsRow = document.createElement("div");
+		labelsRow.className = "event-countdown__labels-row";
+
+		for (let i = 0; i < 3; i++) {
+			labelsRow.appendChild(this.createTextElement("span", "event-countdown__label light dimmed", labels[i]));
+		}
+
+		timerBlock.appendChild(labelsRow);
+		wrapper.appendChild(timerBlock);
 
 		if (this.config.showLight) {
 			wrapper.appendChild(this.createTrafficLight(timeDiff, isRunning));
@@ -182,21 +209,9 @@ Module.register("MMM-EventCountdown", {
 	 */
 	createTextElement (tag, className, text) {
 		const el = document.createElement(tag);
-		el.className = className;
+		if (className) el.className = className;
 		el.textContent = text;
 		return el;
-	},
-
-	createUnit (value, label, color) {
-		const unit = document.createElement("div");
-		unit.className = "event-countdown__unit";
-
-		const valueEl = this.createTextElement("span", "event-countdown__value", value);
-		valueEl.style.color = color;
-		unit.appendChild(valueEl);
-
-		unit.appendChild(this.createTextElement("span", "event-countdown__label", label));
-		return unit;
 	},
 
 	getCountdownColor (timeDiff, isRunning) {

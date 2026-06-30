@@ -49,12 +49,60 @@ SECRET_CAL_URL_2="https://outlook.office365.com/owa/calendar/..."
 
 Datei: **`~/MagicMirror/config/config.js`**
 
+Vollständiger Modul-Block mit **allen Optionen** (direkt kopierbar):
+
+```js
+{
+  module: "MMM-EventCountdown",
+  position: "middle_center",
+  header: "",
+  classes: "",
+  disabled: false,
+
+  config: {
+    // --- Kalender (URLs in config.env, NICHT hier!) ---
+    calendars: [
+      {
+        name: "Mein Kalender",
+        url: "${SECRET_CAL_URL_1}",
+        fetchTimeout: 30000,
+      },
+      // {
+      //   name: "Arbeit",
+      //   url: "${SECRET_CAL_URL_2}",
+      // },
+    ],
+    allowedHosts: [],
+
+    // --- Aktualisierung ---
+    fetchInterval: 60000,
+    customInterval: 1000,
+
+    // --- Darstellung ---
+    showLight: true,
+    showColons: false,      // true = 05:23:45  |  false = 052345 (kompakt)
+    size: "medium",         // "small" | "medium" | "large"
+
+    // --- Beschriftungen ---
+    daysLabel: "DAYS",
+    hoursLabel: "HOURS",
+    minutesLabel: "MINUTES",
+    secondsLabel: "SECONDS",
+    noEventText: "NO SCHEDULED EVENT!",
+    runningText: "is running",
+    startsInText: "starts in",
+  },
+},
+```
+
+> Die gleiche Vorlage liegt auch als Datei `config.example.js` im Modul-Ordner.
+
+Minimal-Beispiel in einer kompletten `config.js`:
+
 ```js
 let config = {
   address: "0.0.0.0",
   port: 8080,
-
-  // WICHTIG: Secrets vor dem Browser schützen
   hideConfigSecrets: true,
 
   modules: [
@@ -62,22 +110,10 @@ let config = {
       module: "MMM-EventCountdown",
       position: "middle_center",
       config: {
-        // Kalender-Referenz – URL kommt aus config.env (Schritt 1)
-        calendars: [
-          {
-            name: "Mein Kalender",
-            url: "${SECRET_CAL_URL_1}",   // ← Verweis auf config.env-Variable
-          },
-          // {
-          //   name: "Arbeit",
-          //   url: "${SECRET_CAL_URL_2}",
-          // },
-        ],
-
+        calendars: [{ name: "Mein Kalender", url: "${SECRET_CAL_URL_1}" }],
         showLight: true,
-        size: "medium",          // "small" | "medium" | "large"
-        fetchInterval: 60000,    // Kalender alle 60s neu laden
-        customInterval: 1000,    // Countdown jede Sekunde aktualisieren
+        showColons: false,
+        size: "medium",
       },
     },
   ],
@@ -120,11 +156,16 @@ let config = {
 | `fetchInterval` | Intervall für Kalender-Neuladen (ms) | `60000` |
 | `customInterval` | Countdown-Aktualisierung (ms) | `1000` |
 | `showLight` | Ampel-Grafik anzeigen | `false` |
+| `showColons` | Doppelpunkte zwischen Zahlengruppen (`05:23:45`) | `false` |
 | `size` | Größe: `"small"`, `"medium"`, `"large"` | `"medium"` |
 | `daysLabel` | Label für Tage | `"DAYS"` |
 | `hoursLabel` | Label für Stunden | `"HOURS"` |
 | `minutesLabel` | Label für Minuten | `"MINUTES"` |
 | `secondsLabel` | Label für Sekunden | `"SECONDS"` |
+| `noEventText` | Text wenn kein Event gefunden | `"NO SCHEDULED EVENT!"` |
+| `runningText` | Text während Event läuft | `"is running"` |
+| `startsInText` | Text vor Event-Start | `"starts in"` |
+| `calendars[].fetchTimeout` | Timeout pro Kalender-Abruf (ms) | `30000` |
 
 ---
 
