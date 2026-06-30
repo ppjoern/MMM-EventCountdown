@@ -1,17 +1,12 @@
 /*
  * MMM-EventCountdown – Responsives Layout
- *
- * Konzept:
- *   --countdown-value-size  = Schriftgröße der Zahlen (skaliert mit Bildschirm)
- *   gap: Nch auf dem Timer     = Abstand zwischen Gruppen, N × Breite einer "0"
- *   Labels in em relativ       = bleiben proportional klein und zentriert unter jeder Gruppe
  */
 
 .event-countdown {
-	--countdown-value-size: clamp(2.5rem, 7vmin, 7rem);
-	--countdown-title-size: clamp(1rem, 2.5vmin, 2rem);
-	--countdown-subtitle-size: clamp(0.75rem, 1.5vmin, 1.2rem);
-	--countdown-label-ratio: 0.17;
+	--countdown-value-size: 7rem;
+	--countdown-title-size: 2rem;
+	--countdown-subtitle-size: 1.2rem;
+	--countdown-label-ratio: 0.171;
 	--countdown-digit-tight: -0.043em;
 	--countdown-group-gap: 1ch;
 	--countdown-unit-width: 2.5ch;
@@ -21,11 +16,15 @@
 }
 
 .event-countdown--small {
-	--countdown-value-size: clamp(1.75rem, 5vmin, 4.9rem);
+	--countdown-value-size: 4.9rem;
+	--countdown-title-size: 1.4rem;
+	--countdown-subtitle-size: 0.84rem;
 }
 
 .event-countdown--large {
-	--countdown-value-size: clamp(3.25rem, 9vmin, 9.1rem);
+	--countdown-value-size: 9.1rem;
+	--countdown-title-size: 2.6rem;
+	--countdown-subtitle-size: 1.56rem;
 }
 
 .event-countdown__title {
@@ -47,13 +46,26 @@
 
 .event-countdown__timer {
 	display: flex;
+	flex-direction: column;
+	align-items: center;
+	font-size: var(--countdown-value-size);
+	line-height: 1;
+}
+
+.event-countdown__values-line,
+.event-countdown__labels-line {
+	display: flex;
 	flex-direction: row;
 	justify-content: center;
-	align-items: flex-start;
+	align-items: flex-end;
 	flex-wrap: nowrap;
-	font-size: var(--countdown-value-size);
 	gap: var(--countdown-group-gap);
-	line-height: 1;
+}
+
+.event-countdown__labels-line {
+	align-items: flex-start;
+	margin-top: 0.12em;
+	font-size: var(--countdown-value-size);
 }
 
 .event-countdown__unit {
@@ -82,11 +94,9 @@
 .event-countdown__label {
 	font-size: calc(1em * var(--countdown-label-ratio));
 	line-height: 1.2;
-	margin-top: 0.12em;
 	text-align: center;
 	white-space: nowrap;
-	width: max-content;
-	max-width: none;
+	width: 100%;
 }
 
 .event-countdown__colon {
@@ -94,7 +104,11 @@
 	font-weight: 100;
 	line-height: 1;
 	flex: 0 0 auto;
-	align-self: flex-end;
+}
+
+.event-countdown__colon-spacer {
+	flex: 0 0 auto;
+	width: 1ch;
 }
 
 .event-countdown__light {
@@ -102,7 +116,7 @@
 }
 
 .event-countdown__light-img {
-	height: clamp(40px, 12vmin, 85px);
+	height: 85px;
 	width: auto;
 	max-width: 100%;
 	object-fit: contain;
@@ -110,43 +124,57 @@
 
 /* Debug-Rahmen: showDebugBorders: true in config.js */
 .event-countdown--debug {
-	outline: 2px solid #ff0000;
-	outline-offset: 2px;
+	border: 3px solid #ff0000 !important;
+	box-sizing: border-box;
 }
 
 .event-countdown--debug .event-countdown__title {
-	outline: 1px dashed #ff8800;
+	border: 2px dashed #ff8800 !important;
 }
 
 .event-countdown--debug .event-countdown__subtitle {
-	outline: 1px dashed #ff44aa;
+	border: 2px dashed #ff44aa !important;
 }
 
 .event-countdown--debug .event-countdown__timer {
-	outline: 2px solid #0088ff;
-	background: rgba(0, 136, 255, 0.08);
+	border: 3px solid #0088ff !important;
+	background: rgba(0, 136, 255, 0.12) !important;
+}
+
+.event-countdown--debug .event-countdown__values-line {
+	border: 2px solid #00ccff !important;
+	background: rgba(0, 204, 255, 0.08) !important;
+}
+
+.event-countdown--debug .event-countdown__labels-line {
+	border: 2px solid #aa00ff !important;
+	background: rgba(170, 0, 255, 0.08) !important;
 }
 
 .event-countdown--debug .event-countdown__unit {
-	outline: 2px solid #00cc00;
-	background: rgba(0, 204, 0, 0.08);
+	border: 2px solid #00cc00 !important;
+	background: rgba(0, 204, 0, 0.1) !important;
 }
 
 .event-countdown--debug .event-countdown__value {
-	outline: 1px solid #ffff00;
-	background: rgba(255, 255, 0, 0.1);
+	border: 1px solid #ffff00 !important;
+	background: rgba(255, 255, 0, 0.15) !important;
 }
 
 .event-countdown--debug .event-countdown__label {
-	outline: 1px solid #cc66ff;
-	background: rgba(204, 102, 255, 0.1);
+	border: 1px solid #cc66ff !important;
+	background: rgba(204, 102, 255, 0.15) !important;
 }
 
 .event-countdown--debug .event-countdown__colon {
-	outline: 1px solid #00ffff;
-	background: rgba(0, 255, 255, 0.1);
+	border: 2px solid #00ffff !important;
+	background: rgba(0, 255, 255, 0.2) !important;
+}
+
+.event-countdown--debug .event-countdown__colon-spacer {
+	border: 1px dotted #00ffff !important;
 }
 
 .event-countdown--debug .event-countdown__light {
-	outline: 2px solid #ffffff;
+	border: 2px solid #ffffff !important;
 }
