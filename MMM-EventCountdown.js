@@ -138,7 +138,7 @@ Module.register("MMM-EventCountdown", {
 		wrapper.style.setProperty("--countdown-unit-width", `${Number.isFinite(unitWidth) ? unitWidth : 2.5}ch`);
 
 		if (!this.eventState.hasEvent) {
-			wrapper.appendChild(this.el("div", "event-countdown__title light", this.config.noEventText));
+			wrapper.appendChild(this.el("div", "event-countdown__title light thin", this.config.noEventText));
 			return wrapper;
 		}
 
