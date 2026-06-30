@@ -39,8 +39,10 @@
 		showColons: false,
 		useUrgencyColors: true,
 		unitWidth: 2.5,
-		size: "medium",          // skaliert automatisch: FHD ~7rem, 4K größer (vmin pro Browser)
-		// valueSize: "14rem",  // NUR wenn immer ein Display – sonst weglassen!
+		size: "large",
+		scale: 1,
+		adaptiveScale: true,     // HDMI/Pi: automatisch größer | Browser 4K: kaum Änderung
+		// scale: 1.3,          // optional: extra Vergrößerung nur für Spiegel
 		groupGap: 1,
 
 		// --- Beschriftungen ---

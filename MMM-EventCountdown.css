@@ -1,11 +1,12 @@
 /*
  * MMM-EventCountdown – Responsives Layout
- * Skaliert mit vmin – auf 4K-Monitoren automatisch größer
+ * Pro Browser: vmin + adaptiveScale für HDMI-Spiegel (1080p auf 4K-TV)
  */
 
 .event-countdown {
-	/* vmin = pro Browser/Monitor – FHD bleibt ~7rem, 4K wird automatisch größer */
-	--countdown-value-size: clamp(7rem, 6.5vmin, 16rem);
+	--countdown-client-scale: 1;
+	--countdown-value-size-base: clamp(7rem, 6.5vmin, 16rem);
+	--countdown-value-size: calc(var(--countdown-value-size-base) * var(--countdown-client-scale));
 	--countdown-title-size: calc(var(--countdown-value-size) * 0.286);
 	--countdown-subtitle-size: calc(var(--countdown-value-size) * 0.171);
 	--countdown-label-ratio: 0.171;
@@ -18,15 +19,15 @@
 }
 
 .event-countdown--small {
-	--countdown-value-size: clamp(4.9rem, 4vmin, 9rem);
+	--countdown-value-size-base: clamp(4.9rem, 4vmin, 9rem);
 }
 
 .event-countdown--large {
-	--countdown-value-size: clamp(9.1rem, 7vmin, 16rem);
+	--countdown-value-size-base: clamp(10rem, 8.5vmin, 22rem);
 }
 
 .event-countdown--xlarge {
-	--countdown-value-size: clamp(11rem, 9vmin, 22rem);
+	--countdown-value-size-base: clamp(12rem, 10vmin, 26rem);
 }
 
 .event-countdown__title {
@@ -104,7 +105,7 @@
 
 .event-countdown__light-img {
 	height: calc(var(--countdown-value-size) * 1.2);
-	max-height: 22vmin;
+	max-height: 28vmin;
 	width: auto;
 	max-width: 100%;
 	object-fit: contain;

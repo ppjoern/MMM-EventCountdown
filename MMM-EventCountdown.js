@@ -30,9 +30,11 @@ Module.register("MMM-EventCountdown", {
 		hoursLabel: "HOURS",
 		minutesLabel: "MINUTES",
 		secondsLabel: "SECONDS",
-		size: "medium",            // "small" | "medium" | "large" | "xlarge" – skaliert pro Monitor (vmin)
-		valueSize: null,           // nur bei EINEM festen Display setzen, sonst null lassen!
-		groupGap: 1,               // Abstand zwischen Zahlengruppen in "0"-Breiten (1ch)
+		size: "medium",            // "small" | "medium" | "large" | "xlarge"
+		valueSize: null,           // nur bei EINEM festen Display, sonst null
+		scale: 1,                  // manueller Faktor (z. B. 1.5 für HDMI-Spiegel)
+		adaptiveScale: true,       // true = automatisch größer bei kleiner Viewport-Höhe (HDMI/Pi)
+		groupGap: 1,
 		noEventText: "NO SCHEDULED EVENT!",
 		runningText: "is running",
 		startsInText: "starts in",
