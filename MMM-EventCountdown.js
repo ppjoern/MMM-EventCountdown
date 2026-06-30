@@ -26,6 +26,7 @@ Module.register("MMM-EventCountdown", {
 		showColons: false,         // Doppelpunkte zwischen den Zahlengruppen (z. B. 05:23:45)
 		useUrgencyColors: true,    // true = Original-Farben je nach Restzeit | false = immer weiß
 		unitWidth: 2.5,            // Feste Breite jeder Zahlengruppe in "0"-Breiten (ch)
+		showDebugBorders: false,   // true = Rahmen um alle Layout-Elemente (zum Debuggen)
 		daysLabel: "DAYS",
 		hoursLabel: "HOURS",
 		minutesLabel: "MINUTES",

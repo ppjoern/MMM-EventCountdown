@@ -107,3 +107,46 @@
 	max-width: 100%;
 	object-fit: contain;
 }
+
+/* Debug-Rahmen: showDebugBorders: true in config.js */
+.event-countdown--debug {
+	outline: 2px solid #ff0000;
+	outline-offset: 2px;
+}
+
+.event-countdown--debug .event-countdown__title {
+	outline: 1px dashed #ff8800;
+}
+
+.event-countdown--debug .event-countdown__subtitle {
+	outline: 1px dashed #ff44aa;
+}
+
+.event-countdown--debug .event-countdown__timer {
+	outline: 2px solid #0088ff;
+	background: rgba(0, 136, 255, 0.08);
+}
+
+.event-countdown--debug .event-countdown__unit {
+	outline: 2px solid #00cc00;
+	background: rgba(0, 204, 0, 0.08);
+}
+
+.event-countdown--debug .event-countdown__value {
+	outline: 1px solid #ffff00;
+	background: rgba(255, 255, 0, 0.1);
+}
+
+.event-countdown--debug .event-countdown__label {
+	outline: 1px solid #cc66ff;
+	background: rgba(204, 102, 255, 0.1);
+}
+
+.event-countdown--debug .event-countdown__colon {
+	outline: 1px solid #00ffff;
+	background: rgba(0, 255, 255, 0.1);
+}
+
+.event-countdown--debug .event-countdown__light {
+	outline: 2px solid #ffffff;
+}
