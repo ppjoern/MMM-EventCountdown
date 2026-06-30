@@ -1,26 +1,5 @@
-/* global Log */
-
-/**
- * Server-seitiger Helper: Holt Kalender-Events per ICS-URL.
- *
- * WICHTIG – Wo die URLs hingehören:
- *   Die Kalender-URLs werden NIEMALS in dieser Datei eingetragen.
- *   Sie gehören in die MagicMirror-Hauptkonfiguration:
- *
- *   1) ~/MagicMirror/config/config.env  (empfohlen, nicht im Browser sichtbar)
- *      SECRET_CAL_URL_1="https://calendar.google.com/calendar/ical/DEINE-ID/private-abc123/basic.ics"
- *
- *   2) ~/MagicMirror/config/config.js  (Modul-Block, siehe README)
- *      calendars: [{ name: "Mein Kalender", url: "${SECRET_CAL_URL_1}" }]
- *
- *   3) In config.js zusätzlich setzen:
- *      hideConfigSecrets: true
- *
- * Dieser Helper läuft nur auf dem Server (Node.js) und löst SECRET_-Platzhalter
- * über process.env auf – die echten URLs erreichen den Browser nie.
- */
-
 const NodeHelper = require("node_helper");
+const Log = require("logger");
 const nodeIcal = require("node-ical");
 const { URL } = require("url");
 
