@@ -1,262 +1,227 @@
-	Module.register("MMM-EventCountdown",{
-	// Default module config.
+/* global Module, Log, moment */
+
+/**
+ * MMM-EventCountdown – Countdown zum nächsten Kalender-Event.
+ *
+ * Kalender-URLs gehören NICHT hierher, sondern in:
+ *   ~/MagicMirror/config/config.env  →  SECRET_CAL_URL_1="https://..."
+ *   ~/MagicMirror/config/config.js   →  calendars: [{ url: "${SECRET_CAL_URL_1}" }]
+ *
+ * Siehe README.md für die vollständige Anleitung.
+ */
+Module.register("MMM-EventCountdown", {
+
 	defaults: {
-		event: "Year 2030",
-		date: "2031-01-01",
-		customInterval: 1000,
-		daysLabel: 'DAYS',
-		hoursLabel: 'HOURS',
-		minutesLabel: 'MINUTES',
-		secondsLabel: 'SECONDS',
-		startDate: 1893452400 ,
-		endDate: 1924988400,
+		// --- Kalender-Konfiguration (URLs siehe README!) ---
+		calendars: [
+			// Beispiel – echte URL in config.env als SECRET_CAL_URL_1 hinterlegen:
+			// { name: "Mein Kalender", url: "${SECRET_CAL_URL_1}" }
+		],
+		allowedHosts: [],          // Zusätzliche erlaubte Domains für SSRF-Whitelist
+		fetchInterval: 60 * 1000,  // Wie oft der Server Kalender neu lädt (ms)
+		customInterval: 1000,      // Wie oft der Countdown aktualisiert wird (ms)
+
+		// --- Anzeige ---
 		showLight: false,
+		daysLabel: "DAYS",
+		hoursLabel: "HOURS",
+		minutesLabel: "MINUTES",
+		secondsLabel: "SECONDS",
+		size: "medium",            // "small" | "medium" | "large"
+
+		// --- Fallback wenn kein Event gefunden ---
+		event: "Kein Event",
+		date: "2031-01-01",
+		startDate: 1893452400,
+		endDate: 1924988400,
+	},
+
+	// Event-State getrennt von this.config halten (Sicherheit: keine Daten in /config)
+	eventState: {
+		title: null,
+		startDate: null,
+		endDate: null,
 		isRunning: false,
+		hasEvent: false,
 	},
 
-	// set update interval
-	start: function() {
-		var self = this;
-		self.getEvents();
-		setInterval(function() {
-			self.getEvents();
-			self.updateDom(); // no speed defined, so it updates instantly.
-		}, 
-		this.config.customInterval); 
+	updateTimer: null,
+	fetchTimer: null,
+
+	start () {
+		this.requestEvents();
+		this.fetchTimer = setInterval(() => this.requestEvents(), this.config.fetchInterval);
+		this.updateTimer = setInterval(() => this.updateDom(), this.config.customInterval);
 	},
 
-	updateDate: function(events) {
-		//Log.info(events);
-		var now = moment().format("X") //(the number of seconds since the Unix Epoch 01.01.1970 0:00:00)
-		events.sort((a, b) => a.startDate.localeCompare(b.startDate))
-		if (typeof events[0] !== 'undefined') { 
-				this.config.event 		= events[0].title;		//title of the next event
-				this.config.startDate 	= events[0].startDate;	//start of next event
-				this.config.endDate 	= events[0].endDate;	//end if next event
-				//Log.info('Event Startdate :' + events[0].startDate);
-				//Log.info('Event Enddate :' + events[0].endDate);
-
-				if ((now >= events[0].startDate) && (now <= events[0].endDate)) { //event is running
-						this.config.isRunning = true;
-						//Log.info('isRunning:' + this.config.isRunning);
-				} else if (now <= events[0].startDate) { //event not started
-						this.config.isRunning = false;
-						//Log.info('isRunning:' + this.config.isRunning);
-				}
-
-			} else if (typeof events[0] !== 'undefined') {
-				this.config.event 		= events[0].title;
-				this.config.startDate 	= events[0].startDateJ;
-		};	
-		this.updateDom(); // no speed defined, so it updates instantly.
+	stop () {
+		if (this.fetchTimer) clearInterval(this.fetchTimer);
+		if (this.updateTimer) clearInterval(this.updateTimer);
 	},
 
-	getEvents: function() {
-		var self = this;
-		var now = moment().format("X");
-		var filterFn = (event) => {
-			// Do not consider all-day events. Only consider events that start in the future or are currently on.
-			if ((event.isFullday !== true) && (event.startDate > now) || (event.endDate > now)) return true
-			};
-		var callbackFn = (events) => {
-			this.updateDate(events)
-		};
-
-		this.sendNotification("CALEXT2_EVENT_QUERY", {filter:filterFn, callback:callbackFn})
+	/**
+	 * Fordert Events vom serverseitigen node_helper an.
+	 * Die Kalender-URLs werden mitgeschickt (ggf. maskiert als **SECRET_...**),
+	 * der node_helper löst sie serverseitig über process.env auf.
+	 */
+	requestEvents () {
+		this.sendSocketNotification("FETCH_EVENTS", {
+			calendars: this.config.calendars,
+			allowedHosts: this.config.allowedHosts,
+		});
 	},
 
-	getStyles: function() {
-		return ["MMM-EventCountdown.css"]
+	socketNotificationReceived (notification, payload) {
+		if (notification === "EVENTS") {
+			this.processEvents(payload);
+		}
 	},
 
-	// Update function
-	getDom: function() {
-		var self = this;
-		var isRunning = this.config.isRunning;
-		var eventStart = this.config.startDate;
-		var eventEnd = this.config.endDate;
-		
-		var now = Math.floor(new Date().getTime() / 1000);
-		//Log.info('now <<current Time in Seconds since 1970>> ' + now);
+	/**
+	 * Filtert und wählt das nächste relevante Event aus.
+	 */
+	processEvents (events) {
+		if (!Array.isArray(events) || events.length === 0) {
+			this.eventState.hasEvent = false;
+			this.updateDom();
+			return;
+		}
 
-		//Countdown calculation
-		switch (isRunning){
-			case true:
-				var timeDiff = eventEnd - now;
-				break;
-			case false:
-				var timeDiff = eventStart - now;
-				var duration = eventEnd - eventStart;
-				break;
-		};
-		Log.info('timeDiff: ' + timeDiff);
+		const now = Math.floor(Date.now() / 1000);
 
-		var diffDays 	= Math.floor(timeDiff / (60 * 60 * 24));
-		var diffHours 	= Math.floor(timeDiff % (60 * 60 * 24) / (60 * 60));
-		var diffMinutes = Math.floor(timeDiff % (60 * 60) / 60);
-		var diffSeconds = Math.floor(timeDiff % 60);
+		const filtered = events
+			.filter((event) => {
+				if (event.isFullDay) return false;
+				return event.startDate > now || event.endDate > now;
+			})
+			.sort((a, b) => a.startDate - b.startDate);
 
-		var wrapper = document.createElement("div"); 						//build container for table
+		if (filtered.length === 0) {
+			this.eventState.hasEvent = false;
+			this.updateDom();
+			return;
+		}
 
-		var wrapperTable = document.createElement("tableCountdown"); 		//create table
-			wrapperTable.className = "tableCountdown"; 						//styles for table
+		const next = filtered[0];
+		this.eventState.title = next.title;
+		this.eventState.startDate = next.startDate;
+		this.eventState.endDate = next.endDate;
+		this.eventState.hasEvent = true;
 
-		var headRow = document.createElement("tr"); 						//neue Tabellenzeile
-		var headCell = document.createElement("th"); 						//new Tablehead
-			headCell.className ="light tableHead";							//Formatierungen fuer den Titel mit dem Event
-			headCell.colSpan = "3"; 
+		if (now >= next.startDate && now <= next.endDate) {
+			this.eventState.isRunning = true;
+		} else {
+			this.eventState.isRunning = false;
+		}
 
-		var titleRow = document.createElement("tr"); 						//neue Tabellenzeile
-		var titleCell = document.createElement("td"); 						//neue Variable im Format Tabellendata
-			titleCell.className ="light dimmed tableFooterlow"; 			//Formatierungen fuer 'starts' oder 'is running'
-			titleCell.colSpan = "3";
+		this.updateDom();
+	},
 
-		var currentEvent = this.config.event;
-		currentEvent = currentEvent.toUpperCase();
-		headCell.innerHTML += currentEvent
+	getStyles () {
+		return ["MMM-EventCountdown.css"];
+	},
 
-		switch (isRunning){
-			case true:
-				titleCell.innerHTML += "is running";
-				break;
-			case false:
-				titleCell.innerHTML += "starts in";
-				break;
-			default:
-				titleCell.innerHTML = "No scheduled event!"; //wenn kein Event im Kalender eingetragen ist
-				break;
-		};
+	getDom () {
+		const wrapper = document.createElement("div");
+		wrapper.className = `event-countdown event-countdown--${this.config.size || "medium"}`;
 
-		headRow.appendChild(headCell);
-		titleRow.appendChild(titleCell);
-		wrapperTable.appendChild(headRow);
-		wrapperTable.appendChild(titleRow);
+		if (!this.eventState.hasEvent) {
+			wrapper.appendChild(this.createTextElement("div", "event-countdown__title", "NO SCHEDULED EVENT!"));
+			wrapper.appendChild(this.createTextElement("div", "event-countdown__subtitle", ""));
+			return wrapper;
+		}
 
-		var timeRow = document.createElement("tr"); //row for the countdown
+		const isRunning = this.eventState.isRunning;
+		const eventStart = this.eventState.startDate;
+		const eventEnd = this.eventState.endDate;
+		const now = Math.floor(Date.now() / 1000);
 
-		var countdownCell_1 = document.createElement("td"); 
-		var countdownCell_2 = document.createElement("td");
-		var countdownCell_3 = document.createElement("td");
+		const timeDiff = isRunning ? eventEnd - now : eventStart - now;
 
-		countdownCell_1.className = "tableTime thin";
-		countdownCell_2.className = "tableTime thin";
-		countdownCell_3.className = "tableTime thin";
+		// Titel – textContent statt innerHTML (XSS-Schutz)
+		const titleEl = this.createTextElement("div", "event-countdown__title", (this.eventState.title || "").toUpperCase());
+		wrapper.appendChild(titleEl);
 
-		const REMAINING_TIME_1 = 60 * 60 * 24; 	// 24h
-		const REMAINING_TIME_2 = 60 * 60 * 1; 	// 1h
-		const REMAINING_TIME_3 = 60 * 20;		// 20min
-		const REMAINING_TIME_4 = 60 * 5;		// 5min
+		const subtitleText = isRunning ? "is running" : "starts in";
+		wrapper.appendChild(this.createTextElement("div", "event-countdown__subtitle", subtitleText));
 
-		if ((timeDiff < REMAINING_TIME_1) && (isRunning === false)) { //less than 24h
-			var cellColor = "#00ff00"; //Springgreen
-		};
+		const diffDays = Math.floor(timeDiff / 86400);
+		const diffHours = Math.floor((timeDiff % 86400) / 3600);
+		const diffMinutes = Math.floor((timeDiff % 3600) / 60);
+		const diffSeconds = Math.floor(timeDiff % 60);
 
-		if ((timeDiff < REMAINING_TIME_2) && (timeDiff > REMAINING_TIME_3) && (isRunning === false)) { //less than 1h and more than 20 minutes
-			var cellColor = "#ffff00";
-		};
+		const color = this.getCountdownColor(timeDiff, isRunning);
 
-		if ((timeDiff < REMAINING_TIME_3) && (timeDiff > REMAINING_TIME_4) && (isRunning === false)) { //less than 20 minutes more than 5
-			var cellColor = "#ff9966";
-		};
+		const timerRow = document.createElement("div");
+		timerRow.className = "event-countdown__timer";
 
-		if (timeDiff <= REMAINING_TIME_4 && (isRunning === false)) { //less than 5 minutes
-			var cellColor = "#ff6600";
-		};
-
-		if (isRunning === true) { //if the event is eunning
-			var cellColor = "#ffffff";
-		};
-
-			countdownCell_1.style.color = cellColor;
-			countdownCell_2.style.color = cellColor;
-			countdownCell_3.style.color = cellColor;
-
-		if ((diffDays < 10)) { diffDays = "0" + diffDays;}
-		if ((diffHours < 10)) { diffHours = "0" + diffHours;}
-		if ((diffMinutes < 10)) { diffMinutes = "0" + diffMinutes; }
-		if ((diffSeconds < 10)) { diffSeconds = "0" + diffSeconds; }
-
+		let values, labels;
 		if (diffDays > 0) {
-			countdownCell_1.innerHTML = diffDays;
-			countdownCell_2.innerHTML = diffHours;
-			countdownCell_3.innerHTML = diffMinutes;	
-		};
+			values = [diffDays, diffHours, diffMinutes];
+			labels = [this.config.daysLabel, this.config.hoursLabel, this.config.minutesLabel];
+		} else {
+			values = [diffHours, diffMinutes, diffSeconds];
+			labels = [this.config.hoursLabel, this.config.minutesLabel, this.config.secondsLabel];
+		}
 
-		if (diffDays < 1) {
-			countdownCell_1.innerHTML = diffHours;
-			countdownCell_2.innerHTML = diffMinutes;
-			countdownCell_3.innerHTML = diffSeconds;	
-		};
-		
-		timeRow.appendChild(countdownCell_1);
-		timeRow.appendChild(countdownCell_2);
-		timeRow.appendChild(countdownCell_3);
-		wrapperTable.appendChild(timeRow);
+		for (let i = 0; i < 3; i++) {
+			timerRow.appendChild(this.createUnit(String(values[i]).padStart(2, "0"), labels[i], color));
+		}
 
-		var labelCell_1 = document.createElement("td");
-		var labelCell_2 = document.createElement("td");
-		var labelCell_3 = document.createElement("td");
+		wrapper.appendChild(timerRow);
 
-		labelCell_1.className = "tableFooter light dimmed";
-		labelCell_2.className = "tableFooter light dimmed";
-		labelCell_3.className = "tableFooter light dimmed";
+		if (this.config.showLight) {
+			wrapper.appendChild(this.createTrafficLight(timeDiff, isRunning));
+		}
 
-		if (diffDays > 0) {
-			labelCell_1.innerHTML = this.config.daysLabel + "<p>";
-			labelCell_2.innerHTML = this.config.hoursLabel;	
-			labelCell_3.innerHTML = this.config.minutesLabel;
-		};
-
-		if (diffDays < 1) {
-			labelCell_1.innerHTML = this.config.hoursLabel + "<p>";
-			labelCell_2.innerHTML = this.config.minutesLabel;	
-			labelCell_3.innerHTML = this.config.secondsLabel;
-		};
-
-		wrapperTable.appendChild(labelCell_1);
-		wrapperTable.appendChild(labelCell_2);
-		wrapperTable.appendChild(labelCell_3);
-
-		//traffic light integration
-		var showLight = this.config.showLight;
-
-		if (showLight === true) {
-				//Log.info ("ShowLight true");
-				var remainMinutes = Math.floor(timeDiff / 60); //Remaining Minutes until Event Start
-
-				var lightRow = document.createElement("tr");
-				lightRow.className = "tableTime"; //Formatvorgabe Tabellenzeile
-
-				var lightCell = document.createElement("td");
-				lightCell.className = "tableHead";
-
-				lightCell.colSpan = "3";	//3 Spalten verbinden
-
-				var lightHeight = 85; //height of the traffic light
-				switch(isRunning){
-					case true:
-						//Log.info ('Is Running');
-						if (remainMinutes <= 3) {
-							lightCell.innerHTML = "<img src='modules/MMM-EventCountdown/images/lights_g" + (remainMinutes + 1) + ".png' height=" + lightHeight + "px>";
-							} else {
-							lightCell.innerHTML = "<img src='modules/MMM-EventCountdown/images/lights_g5.png' height=" + lightHeight + "px>";	
-						};
-						break;
-
-					case false:
-						//Log.info ('Is Not Running');
-						//Log.info ("Remaining Minutes " + remainMinutes);
-						if (remainMinutes <= 3) {
-							lightCell.innerHTML = "<img src='modules/MMM-EventCountdown/images/lights_r" + (remainMinutes + 1) + ".png' height=" + lightHeight + "px>";
-							} else {
-							lightCell.innerHTML = "<img src='modules/MMM-EventCountdown/images/lights_r5.png' height=" + lightHeight + "px>";	
-						};
-						break;
-				};	
-		 		lightRow.appendChild(lightCell);
-		 		wrapperTable.appendChild(lightRow);
-		 	};
-		wrapper.appendChild(wrapperTable);
 		return wrapper;
+	},
+
+	/**
+	 * Erstellt ein Element mit textContent (kein innerHTML – XSS-sicher).
+	 */
+	createTextElement (tag, className, text) {
+		const el = document.createElement(tag);
+		el.className = className;
+		el.textContent = text;
+		return el;
+	},
+
+	createUnit (value, label, color) {
+		const unit = document.createElement("div");
+		unit.className = "event-countdown__unit";
+
+		const valueEl = this.createTextElement("span", "event-countdown__value", value);
+		valueEl.style.color = color;
+		unit.appendChild(valueEl);
+
+		unit.appendChild(this.createTextElement("span", "event-countdown__label", label));
+		return unit;
+	},
+
+	getCountdownColor (timeDiff, isRunning) {
+		if (isRunning) return "#ffffff";
+		if (timeDiff <= 300) return "#ff6600";       // < 5 min
+		if (timeDiff <= 1200) return "#ff9966";        // < 20 min
+		if (timeDiff <= 3600) return "#ffff00";      // < 1 h
+		if (timeDiff < 86400) return "#00ff00";      // < 24 h
+		return "#ffffff";
+	},
+
+	createTrafficLight (timeDiff, isRunning) {
+		const container = document.createElement("div");
+		container.className = "event-countdown__light";
+
+		const remainMinutes = Math.max(0, Math.floor(timeDiff / 60));
+		const lightIndex = Math.min(5, Math.max(1, remainMinutes <= 3 ? remainMinutes + 1 : 5));
+		const prefix = isRunning ? "lights_g" : "lights_r";
+
+		const img = document.createElement("img");
+		img.className = "event-countdown__light-img";
+		img.alt = isRunning ? "Event läuft" : "Countdown";
+		img.src = `modules/MMM-EventCountdown/images/${prefix}${lightIndex}.png`;
+
+		container.appendChild(img);
+		return container;
 	},
 });

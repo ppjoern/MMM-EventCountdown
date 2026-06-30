@@ -1,61 +1,83 @@
 /*
- *
- * MMM-EventCountdown
- *
-*/
+ * MMM-EventCountdown – Responsives Layout mit CSS Grid + clamp()
+ */
 
-.tableCountdown{
-    border: 0px solid green;
-    margin-left:0px; 
-    margin-right: 0px;
-    border-spacing: 0px;
-    border-collapse: separate;
+.event-countdown {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 100%;
+	text-align: center;
+	overflow: hidden;
+	--countdown-scale: 1;
 }
 
-.tableHead{
-    border: 0px solid green;
-    color: #ffffff; /*Weiss*/ 
-    border-collapse: collapse;
-    border-spacing: 0px;
-    font-size: 2rem;
-    text-align: center;
+.event-countdown--small  { --countdown-scale: 0.7; }
+.event-countdown--medium { --countdown-scale: 1; }
+.event-countdown--large  { --countdown-scale: 1.3; }
+
+.event-countdown__title {
+	color: #ffffff;
+	font-size: clamp(1rem, calc(3vw * var(--countdown-scale)), calc(2rem * var(--countdown-scale)));
+	font-weight: 400;
+	line-height: 1.2;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 100%;
+	padding: 0 0.25rem;
 }
 
-.tableTime{
-    border: 0px solid green;
-    border-collapse: collapse;
-    border-spacing: 0px;
-    color: #ffffff; /* white */
-    font-size: 7.0rem;
-    line-height: 1em;
-    letter-spacing: -3px;
-    width: 9rem;
+.event-countdown__subtitle {
+	color: rgba(255, 255, 255, 0.6);
+	font-size: clamp(0.8rem, calc(1.5vw * var(--countdown-scale)), calc(1.2rem * var(--countdown-scale)));
+	line-height: 1.4;
+	margin-bottom: 0.25rem;
 }
 
-.tableFooter{
-    border: 0px solid red;
-    border-collapse: collapse;
-    font-size: 1.2rem;
-    align-content: center;
-    text-align: center;
-    /*height: 2em;*/
-    height: 500%;
-    text-align: center;
-    vertical-align: top;
+.event-countdown__timer {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: clamp(0.25rem, 1vw, 0.75rem);
+	width: 100%;
+	max-width: 100%;
+	margin: 0 auto;
 }
 
-.tableFooterlow{
-    border: 0px solid red;
-    border-collapse: collapse;
-    font-size: 1.2rem;
-    align-content: center;
-    text-align: center;
-    line-height: 1em;
-    /*line-height: 500%;*/
-    text-align: center;
-    vertical-align: middle;
+.event-countdown__unit {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	min-width: 0;
 }
 
-.countdown1{
-    .color: #327da8; /*graublau*/
+.event-countdown__value {
+	color: #ffffff;
+	font-size: clamp(2rem, calc(8vw * var(--countdown-scale)), calc(7rem * var(--countdown-scale)));
+	font-weight: 300;
+	line-height: 1;
+	letter-spacing: -0.05em;
 }
+
+.event-countdown__label {
+	color: rgba(255, 255, 255, 0.6);
+	font-size: clamp(0.7rem, calc(1.5vw * var(--countdown-scale)), calc(1.2rem * var(--countdown-scale)));
+	margin-top: 0.15em;
+	text-transform: uppercase;
+}
+
+.event-countdown__light {
+	margin-top: 0.5rem;
+}
+
+.event-countdown__light-img {
+	height: clamp(40px, calc(12vw * var(--countdown-scale)), 85px);
+	width: auto;
+	max-width: 100%;
+	object-fit: contain;
+}
+
+/* Legacy-Klassen (Abwärtskompatibilität) */
+.tableCountdown { width: 100%; border-spacing: 0; }
+.tableHead { color: #ffffff; text-align: center; }
+.tableTime { color: #ffffff; text-align: center; }
+.tableFooter { color: rgba(255, 255, 255, 0.6); text-align: center; }
