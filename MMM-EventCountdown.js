@@ -24,6 +24,8 @@ Module.register("MMM-EventCountdown", {
 		// --- Anzeige ---
 		showLight: false,
 		showColons: false,         // Doppelpunkte zwischen den Zahlengruppen (z. B. 05:23:45)
+		useUrgencyColors: true,    // true = Original-Farben je nach Restzeit | false = immer weiß
+		unitWidth: 2.5,            // Feste Breite jeder Zahlengruppe in "0"-Breiten (ch)
 		daysLabel: "DAYS",
 		hoursLabel: "HOURS",
 		minutesLabel: "MINUTES",
@@ -132,6 +134,8 @@ Module.register("MMM-EventCountdown", {
 		const groupGap = Number(this.config.groupGap);
 		wrapper.className = `event-countdown event-countdown--${size}`;
 		wrapper.style.setProperty("--countdown-group-gap", `${Number.isFinite(groupGap) ? groupGap : 1}ch`);
+		const unitWidth = Number(this.config.unitWidth);
+		wrapper.style.setProperty("--countdown-unit-width", `${Number.isFinite(unitWidth) ? unitWidth : 2.5}ch`);
 
 		if (!this.eventState.hasEvent) {
 			wrapper.appendChild(this.el("div", "event-countdown__title light", this.config.noEventText));
@@ -218,11 +222,33 @@ Module.register("MMM-EventCountdown", {
 	},
 
 	getCountdownColor (timeDiff, isRunning) {
-		if (isRunning) return "#00ff00";
-		if (timeDiff <= 300) return "#ff6600";
-		if (timeDiff <= 1200) return "#ff9966";
-		if (timeDiff <= 3600) return "#ffff00";
-		if (timeDiff < 86400) return "#00ff00";
-		return "#ffffff";
+		if (!this.config.useUrgencyColors) {
+			return "#ffffff";
+		}
+
+		// Original-Farblogik (ppjoern): aufeinanderfolgende if-Blöcke, letzter Treffer gewinnt
+		const REMAINING_TIME_1 = 60 * 60 * 24;  // 24 h
+		const REMAINING_TIME_2 = 60 * 60;       // 1 h
+		const REMAINING_TIME_3 = 60 * 20;       // 20 min
+		const REMAINING_TIME_4 = 60 * 5;        // 5 min
+		let cellColor;
+
+		if (timeDiff < REMAINING_TIME_1 && !isRunning) {
+			cellColor = "#00ff00";
+		}
+		if (timeDiff < REMAINING_TIME_2 && timeDiff > REMAINING_TIME_3 && !isRunning) {
+			cellColor = "#ffff00";
+		}
+		if (timeDiff < REMAINING_TIME_3 && timeDiff > REMAINING_TIME_4 && !isRunning) {
+			cellColor = "#ff9966";
+		}
+		if (timeDiff <= REMAINING_TIME_4 && !isRunning) {
+			cellColor = "#ff6600";
+		}
+		if (isRunning) {
+			cellColor = "#ffffff";
+		}
+
+		return cellColor || "#ffffff";
 	},
 });

@@ -14,6 +14,7 @@
 	--countdown-label-ratio: 0.17;
 	--countdown-digit-tight: -0.043em;
 	--countdown-group-gap: 1ch;
+	--countdown-unit-width: 2.5ch;
 	box-sizing: border-box;
 	width: 100%;
 	text-align: center;
@@ -60,8 +61,11 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: flex-start;
-	flex: 0 0 auto;
-	min-width: 0;
+	flex: 0 0 var(--countdown-unit-width);
+	width: var(--countdown-unit-width);
+	min-width: var(--countdown-unit-width);
+	max-width: var(--countdown-unit-width);
+	overflow: visible;
 }
 
 .event-countdown__value {
@@ -71,7 +75,8 @@
 	letter-spacing: var(--countdown-digit-tight);
 	font-variant-numeric: tabular-nums;
 	white-space: nowrap;
-	color: #ffffff;
+	width: 100%;
+	text-align: center;
 }
 
 .event-countdown__label {
@@ -80,7 +85,8 @@
 	margin-top: 0.12em;
 	text-align: center;
 	white-space: nowrap;
-	width: 100%;
+	width: max-content;
+	max-width: none;
 }
 
 .event-countdown__colon {
@@ -89,7 +95,6 @@
 	line-height: 1;
 	flex: 0 0 auto;
 	align-self: flex-end;
-	color: #ffffff;
 }
 
 .event-countdown__light {

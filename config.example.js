@@ -36,6 +36,8 @@
 		// --- Darstellung ---
 		showLight: true,        // Ampel-Grafik anzeigen
 		showColons: false,      // true = 05:23:45  |  false = 052345 (kompakt, wie Original)
+		useUrgencyColors: true, // true = Original-Farben je nach Restzeit | false = immer weiß
+		unitWidth: 2.5,         // Feste Breite jeder Zahlengruppe (in "0"-Breiten)
 		size: "medium",         // "small" | "medium" | "large"
 		groupGap: 1,        // Abstand zwischen Zahlengruppen in "0"-Breiten (1 = eine Null breit)
 
