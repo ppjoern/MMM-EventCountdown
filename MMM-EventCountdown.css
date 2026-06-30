@@ -4,7 +4,8 @@
  */
 
 .event-countdown {
-	--countdown-value-size: clamp(7rem, 5.5vmin, 14rem);
+	/* vmin = pro Browser/Monitor – FHD bleibt ~7rem, 4K wird automatisch größer */
+	--countdown-value-size: clamp(7rem, 6.5vmin, 16rem);
 	--countdown-title-size: calc(var(--countdown-value-size) * 0.286);
 	--countdown-subtitle-size: calc(var(--countdown-value-size) * 0.171);
 	--countdown-label-ratio: 0.171;

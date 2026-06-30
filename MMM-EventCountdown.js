@@ -30,8 +30,8 @@ Module.register("MMM-EventCountdown", {
 		hoursLabel: "HOURS",
 		minutesLabel: "MINUTES",
 		secondsLabel: "SECONDS",
-		size: "medium",            // "small" | "medium" | "large" | "xlarge" (4K)
-		valueSize: null,           // optional: eigene Größe z. B. "12rem" (überschreibt size)
+		size: "medium",            // "small" | "medium" | "large" | "xlarge" – skaliert pro Monitor (vmin)
+		valueSize: null,           // nur bei EINEM festen Display setzen, sonst null lassen!
 		groupGap: 1,               // Abstand zwischen Zahlengruppen in "0"-Breiten (1ch)
 		noEventText: "NO SCHEDULED EVENT!",
 		runningText: "is running",
@@ -137,6 +137,9 @@ Module.register("MMM-EventCountdown", {
 		wrapper.style.setProperty("--countdown-group-gap", `${Number.isFinite(groupGap) ? groupGap : 1}ch`);
 		const unitWidth = Number(this.config.unitWidth);
 		wrapper.style.setProperty("--countdown-unit-width", `${Number.isFinite(unitWidth) ? unitWidth : 2.5}ch`);
+		if (this.config.valueSize) {
+			wrapper.style.setProperty("--countdown-value-size", this.config.valueSize);
+		}
 
 		if (!this.eventState.hasEvent) {
 			wrapper.appendChild(this.el("div", "event-countdown__title light thin", this.config.noEventText));

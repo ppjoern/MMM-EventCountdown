@@ -39,8 +39,8 @@
 		showColons: false,
 		useUrgencyColors: true,
 		unitWidth: 2.5,
-		size: "xlarge",          // "small" | "medium" | "large" | "xlarge" (empfohlen für 4K)
-		// valueSize: "14rem",  // optional: feste Größe, überschreibt size
+		size: "medium",          // skaliert automatisch: FHD ~7rem, 4K größer (vmin pro Browser)
+		// valueSize: "14rem",  // NUR wenn immer ein Display – sonst weglassen!
 		groupGap: 1,
 
 		// --- Beschriftungen ---
