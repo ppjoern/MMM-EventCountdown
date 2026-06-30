@@ -29,6 +29,7 @@ Module.register("MMM-EventCountdown", {
 		minutesLabel: "MINUTES",
 		secondsLabel: "SECONDS",
 		size: "medium",            // "small" | "medium" | "large"
+		groupGap: "1ch",           // Abstand zwischen Zahlengruppen (z. B. "1ch", "0.5ch")
 		noEventText: "NO SCHEDULED EVENT!",
 		runningText: "is running",
 		startsInText: "starts in",
@@ -130,6 +131,7 @@ Module.register("MMM-EventCountdown", {
 		const size = this.config.size || "medium";
 		const colonClass = this.config.showColons ? "event-countdown--colons" : "event-countdown--no-colons";
 		wrapper.className = `event-countdown event-countdown--${size} ${colonClass}`;
+		wrapper.style.setProperty("--countdown-group-gap", this.config.groupGap || "1ch");
 
 		if (!this.eventState.hasEvent) {
 			wrapper.appendChild(this.createTextElement("div", "event-countdown__title light", this.config.noEventText));

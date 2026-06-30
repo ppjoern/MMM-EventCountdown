@@ -1,5 +1,5 @@
 /*
- * MMM-EventCountdown – Tabellen-Layout (Original) mit responsiver Skalierung
+ * MMM-EventCountdown – Tabellen-Layout, enge Zahlengruppen mit 1ch Abstand
  */
 
 .event-countdown {
@@ -9,6 +9,7 @@
 	text-align: center;
 	overflow: hidden;
 	--countdown-scale: 1;
+	--countdown-group-gap: 1ch;
 }
 
 .event-countdown--small  { --countdown-scale: 0.7; }
@@ -17,11 +18,11 @@
 
 .tableCountdown {
 	border: 0;
-	margin-left: 0;
-	margin-right: 0;
-	border-spacing: 0;
+	margin: 0 auto;
+	border-spacing: var(--countdown-group-gap) 0;
 	border-collapse: separate;
-	width: 100%;
+	width: auto;
+	max-width: 100%;
 }
 
 .tableHead {
@@ -48,9 +49,12 @@
 	font-weight: 100;
 	line-height: 1em;
 	letter-spacing: -3px;
-	width: calc(9rem * var(--countdown-scale));
+	width: auto;
+	min-width: 2ch;
+	padding: 0;
 	text-align: center;
 	vertical-align: bottom;
+	white-space: nowrap;
 }
 
 .tableColon {
@@ -59,7 +63,8 @@
 	font-size: calc(7rem * var(--countdown-scale));
 	font-weight: 100;
 	line-height: 1em;
-	width: calc(1.5rem * var(--countdown-scale));
+	width: auto;
+	min-width: 0;
 	text-align: center;
 	vertical-align: bottom;
 	padding: 0;
@@ -67,7 +72,8 @@
 
 .tableColonSpacer {
 	border: 0;
-	width: calc(1.5rem * var(--countdown-scale));
+	width: auto;
+	min-width: 0;
 	padding: 0;
 }
 
@@ -77,7 +83,22 @@
 	text-align: center;
 	vertical-align: top;
 	line-height: 1em;
-	width: calc(9rem * var(--countdown-scale));
+	width: auto;
+	padding: 0;
+	white-space: nowrap;
+}
+
+.event-countdown--colons .tableCountdown {
+	border-spacing: 0 0;
+}
+
+.event-countdown--colons .tableTime:nth-of-type(2),
+.event-countdown--colons .tableTime:nth-of-type(3) {
+	padding-left: var(--countdown-group-gap);
+}
+
+.event-countdown--colons .tableColon {
+	padding: 0;
 }
 
 .event-countdown__light {

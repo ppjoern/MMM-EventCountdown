@@ -37,6 +37,7 @@
 		showLight: true,        // Ampel-Grafik anzeigen
 		showColons: false,      // true = 05:23:45  |  false = 052345 (kompakt, wie Original)
 		size: "medium",         // "small" | "medium" | "large"
+		groupGap: "1ch",        // Abstand zwischen Zahlengruppen (Breite einer "0" = 1ch)
 
 		// --- Beschriftungen ---
 		daysLabel: "DAYS",
