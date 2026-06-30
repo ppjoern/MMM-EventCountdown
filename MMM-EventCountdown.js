@@ -160,7 +160,7 @@ Module.register("MMM-EventCountdown", {
 		const headRow = document.createElement("tr");
 		const headCell = document.createElement("th");
 		headCell.className = "light tableHead";
-		headCell.colSpan = this.config.showColons ? 5 : 3;
+		headCell.colSpan = 3;
 		headCell.textContent = (this.eventState.title || "").toUpperCase();
 		headRow.appendChild(headCell);
 		table.appendChild(headRow);
@@ -168,7 +168,7 @@ Module.register("MMM-EventCountdown", {
 		const titleRow = document.createElement("tr");
 		const titleCell = document.createElement("td");
 		titleCell.className = "light dimmed tableFooterlow";
-		titleCell.colSpan = this.config.showColons ? 5 : 3;
+		titleCell.colSpan = 3;
 		titleCell.textContent = subtitleText;
 		titleRow.appendChild(titleCell);
 		table.appendChild(titleRow);
@@ -183,38 +183,35 @@ Module.register("MMM-EventCountdown", {
 			labels = [this.config.hoursLabel, this.config.minutesLabel, this.config.secondsLabel];
 		}
 
-		const timeRow = document.createElement("tr");
+		const unitsRow = document.createElement("tr");
+		const unitsCell = document.createElement("td");
+		unitsCell.colSpan = 3;
+		unitsCell.className = "tableUnitsCell";
+
+		const unitsWrap = document.createElement("div");
+		unitsWrap.className = this.config.showColons ? "countdown-display countdown-display--colons" : "countdown-display";
+
 		for (let i = 0; i < 3; i++) {
 			if (i > 0 && this.config.showColons) {
-				const colonCell = document.createElement("td");
-				colonCell.className = "tableColon thin";
-				colonCell.textContent = ":";
-				colonCell.style.color = color;
-				timeRow.appendChild(colonCell);
+				const colon = this.createTextElement("span", "tableColon thin", ":");
+				colon.style.color = color;
+				unitsWrap.appendChild(colon);
 			}
 
-			const valueCell = document.createElement("td");
-			valueCell.className = "tableTime thin";
-			valueCell.textContent = String(values[i]).padStart(2, "0");
-			valueCell.style.color = color;
-			timeRow.appendChild(valueCell);
-		}
-		table.appendChild(timeRow);
+			const unit = document.createElement("div");
+			unit.className = "countdown-unit";
 
-		const labelRow = document.createElement("tr");
-		for (let i = 0; i < 3; i++) {
-			if (i > 0 && this.config.showColons) {
-				const colonSpacer = document.createElement("td");
-				colonSpacer.className = "tableColonSpacer";
-				labelRow.appendChild(colonSpacer);
-			}
+			const valueEl = this.createTextElement("div", "tableTime thin", String(values[i]).padStart(2, "0"));
+			valueEl.style.color = color;
+			unit.appendChild(valueEl);
 
-			const labelCell = document.createElement("td");
-			labelCell.className = "tableFooter light dimmed";
-			labelCell.textContent = labels[i];
-			labelRow.appendChild(labelCell);
+			unit.appendChild(this.createTextElement("div", "tableFooter light dimmed", labels[i]));
+			unitsWrap.appendChild(unit);
 		}
-		table.appendChild(labelRow);
+
+		unitsCell.appendChild(unitsWrap);
+		unitsRow.appendChild(unitsCell);
+		table.appendChild(unitsRow);
 
 		wrapper.appendChild(table);
 

@@ -1,5 +1,5 @@
 /*
- * MMM-EventCountdown – Tabellen-Layout, enge Zahlengruppen mit 1ch Abstand
+ * MMM-EventCountdown – enge Zahlengruppen, Abstand exakt über gap (1ch)
  */
 
 .event-countdown {
@@ -19,10 +19,39 @@
 .tableCountdown {
 	border: 0;
 	margin: 0 auto;
-	border-spacing: var(--countdown-group-gap) 0;
-	border-collapse: separate;
+	border-spacing: 0;
+	border-collapse: collapse;
 	width: auto;
 	max-width: 100%;
+}
+
+.tableUnitsCell {
+	border: 0;
+	padding: 0;
+	text-align: center;
+}
+
+.countdown-display {
+	display: inline-flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: flex-end;
+	gap: var(--countdown-group-gap);
+}
+
+.countdown-display--colons {
+	gap: 0;
+}
+
+.countdown-display--colons .countdown-unit:not(:first-child) {
+	margin-left: var(--countdown-group-gap);
+}
+
+.countdown-unit {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	flex: 0 0 auto;
 }
 
 .tableHead {
@@ -50,10 +79,9 @@
 	line-height: 1em;
 	letter-spacing: -3px;
 	width: auto;
-	min-width: 2ch;
 	padding: 0;
+	margin: 0;
 	text-align: center;
-	vertical-align: bottom;
 	white-space: nowrap;
 }
 
@@ -63,42 +91,21 @@
 	font-size: calc(7rem * var(--countdown-scale));
 	font-weight: 100;
 	line-height: 1em;
-	width: auto;
-	min-width: 0;
-	text-align: center;
-	vertical-align: bottom;
 	padding: 0;
-}
-
-.tableColonSpacer {
-	border: 0;
-	width: auto;
-	min-width: 0;
-	padding: 0;
+	margin: 0;
+	flex: 0 0 auto;
+	align-self: flex-end;
 }
 
 .tableFooter {
 	border: 0;
 	font-size: calc(1.2rem * var(--countdown-scale));
 	text-align: center;
-	vertical-align: top;
 	line-height: 1em;
 	width: auto;
 	padding: 0;
+	margin: 0;
 	white-space: nowrap;
-}
-
-.event-countdown--colons .tableCountdown {
-	border-spacing: 0 0;
-}
-
-.event-countdown--colons .tableTime:nth-of-type(2),
-.event-countdown--colons .tableTime:nth-of-type(3) {
-	padding-left: var(--countdown-group-gap);
-}
-
-.event-countdown--colons .tableColon {
-	padding: 0;
 }
 
 .event-countdown__light {
