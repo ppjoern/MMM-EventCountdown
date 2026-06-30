@@ -143,12 +143,7 @@ Module.register("MMM-EventCountdown", {
 		const now = Math.floor(Date.now() / 1000);
 
 		const timeDiff = isRunning ? eventEnd - now : eventStart - now;
-
-		const titleEl = this.createTextElement("div", "event-countdown__title light", (this.eventState.title || "").toUpperCase());
-		wrapper.appendChild(titleEl);
-
 		const subtitleText = isRunning ? this.config.runningText : this.config.startsInText;
-		wrapper.appendChild(this.createTextElement("div", "event-countdown__subtitle light dimmed", subtitleText));
 
 		const diffDays = Math.floor(timeDiff / 86400);
 		const diffHours = Math.floor((timeDiff % 86400) / 3600);
@@ -157,8 +152,24 @@ Module.register("MMM-EventCountdown", {
 
 		const color = this.getCountdownColor(timeDiff, isRunning);
 
-		const timerBlock = document.createElement("div");
-		timerBlock.className = "event-countdown__timer";
+		const table = document.createElement("table");
+		table.className = "tableCountdown";
+
+		const headRow = document.createElement("tr");
+		const headCell = document.createElement("th");
+		headCell.className = "light tableHead";
+		headCell.colSpan = this.config.showColons ? 5 : 3;
+		headCell.textContent = (this.eventState.title || "").toUpperCase();
+		headRow.appendChild(headCell);
+		table.appendChild(headRow);
+
+		const titleRow = document.createElement("tr");
+		const titleCell = document.createElement("td");
+		titleCell.className = "light dimmed tableFooterlow";
+		titleCell.colSpan = this.config.showColons ? 5 : 3;
+		titleCell.textContent = subtitleText;
+		titleRow.appendChild(titleCell);
+		table.appendChild(titleRow);
 
 		let values;
 		let labels;
@@ -170,32 +181,40 @@ Module.register("MMM-EventCountdown", {
 			labels = [this.config.hoursLabel, this.config.minutesLabel, this.config.secondsLabel];
 		}
 
-		const valuesRow = document.createElement("div");
-		valuesRow.className = "event-countdown__values-row";
-
+		const timeRow = document.createElement("tr");
 		for (let i = 0; i < 3; i++) {
 			if (i > 0 && this.config.showColons) {
-				const sep = this.createTextElement("span", "event-countdown__separator thin", ":");
-				sep.style.color = color;
-				valuesRow.appendChild(sep);
+				const colonCell = document.createElement("td");
+				colonCell.className = "tableColon thin";
+				colonCell.textContent = ":";
+				colonCell.style.color = color;
+				timeRow.appendChild(colonCell);
 			}
 
-			const valueEl = this.createTextElement("span", "event-countdown__value thin", String(values[i]).padStart(2, "0"));
-			valueEl.style.color = color;
-			valuesRow.appendChild(valueEl);
+			const valueCell = document.createElement("td");
+			valueCell.className = "tableTime thin";
+			valueCell.textContent = String(values[i]).padStart(2, "0");
+			valueCell.style.color = color;
+			timeRow.appendChild(valueCell);
 		}
+		table.appendChild(timeRow);
 
-		timerBlock.appendChild(valuesRow);
-
-		const labelsRow = document.createElement("div");
-		labelsRow.className = "event-countdown__labels-row";
-
+		const labelRow = document.createElement("tr");
 		for (let i = 0; i < 3; i++) {
-			labelsRow.appendChild(this.createTextElement("span", "event-countdown__label light dimmed", labels[i]));
-		}
+			if (i > 0 && this.config.showColons) {
+				const colonSpacer = document.createElement("td");
+				colonSpacer.className = "tableColonSpacer";
+				labelRow.appendChild(colonSpacer);
+			}
 
-		timerBlock.appendChild(labelsRow);
-		wrapper.appendChild(timerBlock);
+			const labelCell = document.createElement("td");
+			labelCell.className = "tableFooter light dimmed";
+			labelCell.textContent = labels[i];
+			labelRow.appendChild(labelCell);
+		}
+		table.appendChild(labelRow);
+
+		wrapper.appendChild(table);
 
 		if (this.config.showLight) {
 			wrapper.appendChild(this.createTrafficLight(timeDiff, isRunning));
@@ -215,12 +234,12 @@ Module.register("MMM-EventCountdown", {
 	},
 
 	getCountdownColor (timeDiff, isRunning) {
-		if (isRunning) return "#ffffff";
+		if (isRunning) return "#00ff00";
 		if (timeDiff <= 300) return "#ff6600";       // < 5 min
-		if (timeDiff <= 1200) return "#ff9966";        // < 20 min
+		if (timeDiff <= 1200) return "#ff9966";      // < 20 min
 		if (timeDiff <= 3600) return "#ffff00";      // < 1 h
 		if (timeDiff < 86400) return "#00ff00";      // < 24 h
-		return "#ffffff";
+		return "#00ff00";                            // weit entfernt
 	},
 
 	createTrafficLight (timeDiff, isRunning) {

@@ -1,5 +1,5 @@
 /*
- * MMM-EventCountdown – Responsives Layout, kompakte Zahlen wie im Original
+ * MMM-EventCountdown – Tabellen-Layout (Original) mit responsiver Skalierung
  */
 
 .event-countdown {
@@ -9,91 +9,75 @@
 	text-align: center;
 	overflow: hidden;
 	--countdown-scale: 1;
-	--countdown-digit-spacing: -3px;
-	--countdown-group-spacing: -0.35em;
 }
 
 .event-countdown--small  { --countdown-scale: 0.7; }
 .event-countdown--medium { --countdown-scale: 1; }
 .event-countdown--large  { --countdown-scale: 1.3; }
 
-.event-countdown--colons {
-	--countdown-group-spacing: -0.1em;
+.tableCountdown {
+	border: 0;
+	margin-left: 0;
+	margin-right: 0;
+	border-spacing: 0;
+	border-collapse: separate;
+	width: 100%;
 }
 
-.event-countdown__title {
+.tableHead {
+	border: 0;
 	color: #ffffff;
-	font-size: clamp(1rem, calc(3vw * var(--countdown-scale)), calc(2rem * var(--countdown-scale)));
+	font-size: calc(2rem * var(--countdown-scale));
+	text-align: center;
 	font-weight: 400;
 	line-height: 1.2;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	max-width: 100%;
-	padding: 0 0.25rem;
 }
 
-.event-countdown__subtitle {
-	font-size: clamp(0.8rem, calc(1.5vw * var(--countdown-scale)), calc(1.2rem * var(--countdown-scale)));
+.tableFooterlow {
+	border: 0;
+	font-size: calc(1.2rem * var(--countdown-scale));
+	text-align: center;
 	line-height: 1em;
-	margin-bottom: 0.25rem;
+	vertical-align: middle;
 }
 
-.event-countdown__timer {
-	display: inline-block;
-	max-width: 100%;
-}
-
-.event-countdown__values-row {
-	display: flex;
-	justify-content: center;
-	align-items: baseline;
-	flex-wrap: nowrap;
-	white-space: nowrap;
-	line-height: 1em;
-}
-
-.event-countdown__value,
-.event-countdown__separator {
+.tableTime {
+	border: 0;
 	color: #ffffff;
-	font-size: clamp(2.5rem, calc(8vw * var(--countdown-scale)), calc(7rem * var(--countdown-scale)));
+	font-size: calc(7rem * var(--countdown-scale));
 	font-weight: 100;
 	line-height: 1em;
-	letter-spacing: var(--countdown-digit-spacing);
+	letter-spacing: -3px;
+	width: calc(9rem * var(--countdown-scale));
+	text-align: center;
+	vertical-align: bottom;
 }
 
-.event-countdown__value:not(:first-child) {
-	margin-left: var(--countdown-group-spacing);
-}
-
-.event-countdown__separator {
-	letter-spacing: 0;
-	margin-left: var(--countdown-group-spacing);
-	margin-right: var(--countdown-group-spacing);
-}
-
-.event-countdown__labels-row {
-	display: grid;
-	grid-template-columns: repeat(3, 9rem);
-	justify-content: center;
-	gap: 0;
-	margin-top: 0.15em;
-	max-width: 100%;
-}
-
-.event-countdown--small .event-countdown__labels-row {
-	grid-template-columns: repeat(3, 6.3rem);
-}
-
-.event-countdown--large .event-countdown__labels-row {
-	grid-template-columns: repeat(3, 11.7rem);
-}
-
-.event-countdown__label {
-	font-size: clamp(0.7rem, calc(1.5vw * var(--countdown-scale)), calc(1.2rem * var(--countdown-scale)));
+.tableColon {
+	border: 0;
+	color: #ffffff;
+	font-size: calc(7rem * var(--countdown-scale));
+	font-weight: 100;
 	line-height: 1em;
+	width: calc(1.5rem * var(--countdown-scale));
+	text-align: center;
+	vertical-align: bottom;
+	padding: 0;
+}
+
+.tableColonSpacer {
+	border: 0;
+	width: calc(1.5rem * var(--countdown-scale));
+	padding: 0;
+}
+
+.tableFooter {
+	border: 0;
+	font-size: calc(1.2rem * var(--countdown-scale));
 	text-align: center;
 	vertical-align: top;
+	line-height: 1em;
+	width: calc(9rem * var(--countdown-scale));
 }
 
 .event-countdown__light {
@@ -107,16 +91,14 @@
 	object-fit: contain;
 }
 
-/* Legacy-Klassen (Abwärtskompatibilität) */
-.tableCountdown { width: 100%; border-spacing: 0; }
-.tableHead { color: #ffffff; text-align: center; }
-.tableTime {
+/* Kein Event */
+.event-countdown__title {
 	color: #ffffff;
+	font-size: calc(2rem * var(--countdown-scale));
 	text-align: center;
-	font-size: 7rem;
-	font-weight: 100;
-	line-height: 1em;
-	letter-spacing: -3px;
-	width: 9rem;
 }
-.tableFooter { color: rgba(255, 255, 255, 0.6); text-align: center; }
+
+.event-countdown__subtitle {
+	font-size: calc(1.2rem * var(--countdown-scale));
+	text-align: center;
+}
