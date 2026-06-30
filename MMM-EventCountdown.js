@@ -140,7 +140,10 @@ Module.register("MMM-EventCountdown", {
 		const unitWidth = Number(this.config.unitWidth);
 		wrapper.style.setProperty("--countdown-unit-width", `${Number.isFinite(unitWidth) ? unitWidth : 2.5}ch`);
 		if (this.config.valueSize) {
-			wrapper.style.setProperty("--countdown-value-size", this.config.valueSize);
+			wrapper.style.setProperty("--countdown-value-size-base", this.config.valueSize);
+			wrapper.style.setProperty("--countdown-client-scale", "1");
+		} else {
+			wrapper.style.setProperty("--countdown-client-scale", String(this.getClientScale()));
 		}
 
 		if (!this.eventState.hasEvent) {
@@ -210,6 +213,26 @@ Module.register("MMM-EventCountdown", {
 		if (className) node.className = className;
 		if (text !== undefined && text !== null) node.textContent = text;
 		return node;
+	},
+
+	/**
+	 * Skalierung pro Browser-Fenster.
+	 * HDMI-Spiegel (Pi) melden oft nur 1080p – obwohl der TV 4K ist.
+	 * adaptiveScale vergrößert dort automatisch, 4K-Browser bleibt unverändert.
+	 */
+	getClientScale () {
+		let scale = Number(this.config.scale);
+		if (!Number.isFinite(scale) || scale <= 0) scale = 1;
+
+		if (this.config.adaptiveScale === false) return scale;
+
+		const h = window.innerHeight;
+		if (h <= 800) scale *= 1.9;
+		else if (h <= 1080) scale *= 1.65;
+		else if (h <= 1200) scale *= 1.4;
+		else if (h <= 1440) scale *= 1.15;
+
+		return scale;
 	},
 
 	createTrafficLight (timeDiff, isRunning) {
