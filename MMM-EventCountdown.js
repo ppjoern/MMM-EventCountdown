@@ -227,10 +227,20 @@ Module.register("MMM-EventCountdown", {
 		if (this.config.adaptiveScale === false) return scale;
 
 		const h = window.innerHeight;
-		if (h <= 800) scale *= 1.9;
-		else if (h <= 1080) scale *= 1.65;
-		else if (h <= 1200) scale *= 1.4;
-		else if (h <= 1440) scale *= 1.15;
+		const screenH = window.screen ? window.screen.height : 0;
+		const screenW = window.screen ? window.screen.width : 0;
+		const is4KPanel = screenH >= 2000 || screenW >= 3600;
+
+		// Kleiner Viewport → stärker hochskalieren (Pi/HDMI meldet oft nur 1080p)
+		if (h <= 800) scale *= 2.5;
+		else if (h <= 1080) scale *= 2.2;
+		else if (h <= 1200) scale *= 1.85;
+		else if (h <= 1440) scale *= 1.4;
+
+		// 4K-TV mit kleinem Viewport (HDMI-Spiegel): zusätzlicher Boost
+		if (is4KPanel && h <= 1200) {
+			scale *= 1.2;
+		}
 
 		return scale;
 	},

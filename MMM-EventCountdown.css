@@ -23,7 +23,7 @@
 }
 
 .event-countdown--large {
-	--countdown-value-size-base: clamp(10rem, 8.5vmin, 22rem);
+	--countdown-value-size-base: clamp(11rem, 9.5vmin, 24rem);
 }
 
 .event-countdown--xlarge {
