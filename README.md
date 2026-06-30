@@ -157,7 +157,14 @@ let config = {
 | `customInterval` | Countdown-Aktualisierung (ms) | `1000` |
 | `showLight` | Ampel-Grafik anzeigen | `false` |
 | `showColons` | Doppelpunkte zwischen Zahlengruppen (`05:23:45`) | `false` |
-| `size` | Größe: `"small"`, `"medium"`, `"large"` | `"medium"` |
+| `size` | Größe: `"small"`, `"medium"`, `"large"`, `"xlarge"` | `"medium"` |
+| `scale` | Fallback-Skalierung für beide Displays | `1` |
+| `scaleBrowser` | Manuelle Skalierung nur für 4K-Browser (Screen > 1920px) | `null` (= `scale`) |
+| `scaleHdmi` | Manuelle Skalierung nur für Pi/HDMI (Screen ≤ 1920px) | `null` (= `scale`) |
+| `adaptiveScale` | Auto-Boost nur für Pi/HDMI | `true` |
+| `unitWidth` | Spaltenbreite in `ch` | `2.5` |
+| `groupGap` | Abstand zwischen Gruppen in `ch` | `1` |
+| `useUrgencyColors` | Original-Farben je nach Restzeit | `true` |
 | `daysLabel` | Label für Tage | `"DAYS"` |
 | `hoursLabel` | Label für Stunden | `"HOURS"` |
 | `minutesLabel` | Label für Minuten | `"MINUTES"` |
@@ -166,6 +173,19 @@ let config = {
 | `runningText` | Text während Event läuft | `"is running"` |
 | `startsInText` | Text vor Event-Start | `"starts in"` |
 | `calendars[].fetchTimeout` | Timeout pro Kalender-Abruf (ms) | `30000` |
+
+### Gemischte Displays (4K-Browser + HDMI-Spiegel)
+
+Eine `config.js` für alle Clients. Das Modul erkennt pro Browser den Display-Typ und wendet die passende Skalierung an:
+
+```js
+size: "large",
+adaptiveScale: true,   // Auto-Boost nur am HDMI-Spiegel
+scaleBrowser: 1,       // Feintuning 4K-Browser (z. B. 0.9 wenn zu groß)
+scaleHdmi: 1.2,        // Feintuning Pi/HDMI (z. B. 1.2 wenn noch zu klein)
+```
+
+`scaleBrowser` und `scaleHdmi` überschreiben `scale` für den jeweiligen Display-Typ. Werte unter `1` verkleinern, über `1` vergrößern.
 
 ---
 

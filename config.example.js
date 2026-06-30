@@ -40,9 +40,10 @@
 		useUrgencyColors: true,
 		unitWidth: 2.5,
 		size: "large",
-		scale: 1,
-		adaptiveScale: true,     // HDMI/Pi: automatisch größer | Browser 4K: kaum Änderung
-		// scale: 1.3,          // optional: extra Vergrößerung nur für Spiegel
+		scale: 1,                // Fallback für beide Displays
+		scaleBrowser: 1,         // nur 4K-Browser (Screen > 1920px)
+		scaleHdmi: 1,            // nur Pi/HDMI (Screen ≤ 1920px), z. B. 1.2
+		adaptiveScale: true,     // Auto-Boost nur für HDMI
 		groupGap: 1,
 
 		// --- Beschriftungen ---

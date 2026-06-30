@@ -32,8 +32,10 @@ Module.register("MMM-EventCountdown", {
 		secondsLabel: "SECONDS",
 		size: "medium",            // "small" | "medium" | "large" | "xlarge"
 		valueSize: null,           // nur bei EINEM festen Display, sonst null
-		scale: 1,                  // manueller Faktor (z. B. 1.5 für HDMI-Spiegel)
-		adaptiveScale: true,       // true = automatisch größer bei kleiner Viewport-Höhe (HDMI/Pi)
+		scale: 1,                  // Fallback, wenn scaleBrowser/scaleHdmi nicht gesetzt
+		scaleBrowser: null,        // Manuell für 4K-Browser (Screen > 1920px), z. B. 0.9
+		scaleHdmi: null,           // Manuell für Pi/HDMI (Screen ≤ 1920px), z. B. 1.2
+		adaptiveScale: true,       // Auto-Boost nur für Pi/HDMI (kleiner Screen)
 		groupGap: 1,
 		noEventText: "NO SCHEDULED EVENT!",
 		runningText: "is running",
@@ -216,25 +218,42 @@ Module.register("MMM-EventCountdown", {
 	},
 
 	/**
-	 * Skalierung pro Browser-Fenster.
-	 * Nur bei kleinem gemeldetem Screen (Pi/HDMI ~1080p) – 4K-Browser bleiben unverändert.
+	 * Pi/HDMI meldet typisch ≤1080p Screen, 4K-Browser >1920px.
 	 */
-	getClientScale () {
-		let scale = Number(this.config.scale);
-		if (!Number.isFinite(scale) || scale <= 0) scale = 1;
-
-		if (this.config.adaptiveScale === false) return scale;
-
+	isHdmiMirror () {
 		const screenH = window.screen ? window.screen.height : 0;
 		const screenW = window.screen ? window.screen.width : 0;
-		const maxScreen = Math.max(screenH, screenW);
+		return Math.max(screenH, screenW) <= 1920;
+	},
 
-		// 4K-Browser: großer Screen → kein automatischer Boost (vmin reicht)
-		if (maxScreen > 1920) return scale;
+	/**
+	 * Manueller Faktor pro Display-Typ (scaleBrowser / scaleHdmi).
+	 * Fallback: scale
+	 */
+	getManualScale () {
+		const specific = this.isHdmiMirror() ? this.config.scaleHdmi : this.config.scaleBrowser;
+		const specificNum = Number(specific);
+		if (specific != null && Number.isFinite(specificNum) && specificNum > 0) {
+			return specificNum;
+		}
+
+		const fallback = Number(this.config.scale);
+		return Number.isFinite(fallback) && fallback > 0 ? fallback : 1;
+	},
+
+	/**
+	 * Skalierung pro Browser-Fenster.
+	 * adaptiveScale boostet nur Pi/HDMI; 4K-Browser nutzen scaleBrowser.
+	 */
+	getClientScale () {
+		let scale = this.getManualScale();
+
+		if (this.config.adaptiveScale === false || !this.isHdmiMirror()) {
+			return scale;
+		}
 
 		const h = window.innerHeight;
 
-		// Pi/HDMI: meldet 1080p-Screen, TV skaliert hoch → Zahlen größer machen
 		if (h <= 800) scale *= 2.4;
 		else if (h <= 1080) scale *= 2.1;
 		else if (h <= 1200) scale *= 1.75;
