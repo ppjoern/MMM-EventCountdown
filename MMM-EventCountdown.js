@@ -149,7 +149,7 @@ Module.register("MMM-EventCountdown", {
 			: this.eventState.startDate - now;
 		const color = this.getCountdownColor(timeDiff, isRunning);
 
-		wrapper.appendChild(this.el("div", "event-countdown__title light", (this.eventState.title || "").toUpperCase()));
+		wrapper.appendChild(this.el("div", "event-countdown__title light thin", (this.eventState.title || "").toUpperCase()));
 		wrapper.appendChild(this.el("div", "event-countdown__subtitle light dimmed",
 			isRunning ? this.config.runningText : this.config.startsInText));
 
@@ -246,7 +246,7 @@ Module.register("MMM-EventCountdown", {
 			cellColor = "#ff6600";
 		}
 		if (isRunning) {
-			cellColor = "#ffffff";
+			cellColor = "#00ff00";
 		}
 
 		return cellColor || "#ffffff";
