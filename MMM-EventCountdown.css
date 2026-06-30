@@ -1,80 +1,104 @@
 /*
- * MMM-EventCountdown – Original-Tabellenlayout (ppjoern)
+ * MMM-EventCountdown – Responsives Layout
+ *
+ * Konzept:
+ *   --countdown-value-size  = Schriftgröße der Zahlen (skaliert mit Bildschirm)
+ *   gap: Nch auf dem Timer     = Abstand zwischen Gruppen, N × Breite einer "0"
+ *   Labels in em relativ       = bleiben proportional klein und zentriert unter jeder Gruppe
  */
 
 .event-countdown {
-	--countdown-scale: 1;
+	--countdown-value-size: clamp(2.5rem, 7vmin, 7rem);
+	--countdown-title-size: clamp(1rem, 2.5vmin, 2rem);
+	--countdown-subtitle-size: clamp(0.75rem, 1.5vmin, 1.2rem);
+	--countdown-label-ratio: 0.17;
+	--countdown-digit-tight: -0.043em;
+	--countdown-group-gap: 1ch;
+	box-sizing: border-box;
+	width: 100%;
+	text-align: center;
 }
 
-.event-countdown--small  { --countdown-scale: 0.7; }
-.event-countdown--medium { --countdown-scale: 1; }
-.event-countdown--large  { --countdown-scale: 1.3; }
-
-.tableCountdown {
-	border: 0;
-	margin-left: 0;
-	margin-right: 0;
-	border-spacing: 0;
-	border-collapse: separate;
+.event-countdown--small {
+	--countdown-value-size: clamp(1.75rem, 5vmin, 4.9rem);
 }
 
-.tableHead {
-	border: 0;
+.event-countdown--large {
+	--countdown-value-size: clamp(3.25rem, 9vmin, 9.1rem);
+}
+
+.event-countdown__title {
 	color: #ffffff;
-	border-collapse: collapse;
-	border-spacing: 0;
-	font-size: calc(2rem * var(--countdown-scale, 1));
-	text-align: center;
+	font-size: var(--countdown-title-size);
+	font-weight: 400;
+	line-height: 1.2;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 100%;
 }
 
-.tableTime {
-	border: 0;
-	border-collapse: collapse;
-	border-spacing: 0;
+.event-countdown__subtitle {
+	font-size: var(--countdown-subtitle-size);
+	line-height: 1.2;
+	margin-bottom: 0.15em;
+}
+
+.event-countdown__timer {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: flex-start;
+	flex-wrap: nowrap;
+	font-size: var(--countdown-value-size);
+	gap: var(--countdown-group-gap);
+	line-height: 1;
+}
+
+.event-countdown__unit {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	flex: 0 0 auto;
+	min-width: 0;
+}
+
+.event-countdown__value {
+	font-size: 1em;
+	font-weight: 100;
+	line-height: 1;
+	letter-spacing: var(--countdown-digit-tight);
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
 	color: #ffffff;
-	font-size: calc(7rem * var(--countdown-scale, 1));
-	line-height: 1em;
-	letter-spacing: -3px;
-	width: calc(9rem * var(--countdown-scale, 1));
-	text-align: center;
 }
 
-.tableColon {
-	border: 0;
+.event-countdown__label {
+	font-size: calc(1em * var(--countdown-label-ratio));
+	line-height: 1.2;
+	margin-top: 0.12em;
+	text-align: center;
+	white-space: nowrap;
+	width: 100%;
+}
+
+.event-countdown__colon {
+	font-size: 1em;
+	font-weight: 100;
+	line-height: 1;
+	flex: 0 0 auto;
+	align-self: flex-end;
 	color: #ffffff;
-	font-size: calc(7rem * var(--countdown-scale, 1));
-	line-height: 1em;
-	width: calc(1.2rem * var(--countdown-scale, 1));
-	text-align: center;
-	vertical-align: bottom;
-	padding: 0;
 }
 
-.tableColonSpacer {
-	border: 0;
-	width: calc(1.2rem * var(--countdown-scale, 1));
-	padding: 0;
+.event-countdown__light {
+	margin-top: 0.5em;
 }
 
-.tableFooter {
-	border: 0;
-	border-collapse: collapse;
-	font-size: calc(1.2rem * var(--countdown-scale, 1));
-	align-content: center;
-	text-align: center;
-	height: 500%;
-	text-align: center;
-	vertical-align: top;
-	width: calc(9rem * var(--countdown-scale, 1));
-}
-
-.tableFooterlow {
-	border: 0;
-	border-collapse: collapse;
-	font-size: calc(1.2rem * var(--countdown-scale, 1));
-	align-content: center;
-	text-align: center;
-	line-height: 1em;
-	text-align: center;
-	vertical-align: middle;
+.event-countdown__light-img {
+	height: clamp(40px, 12vmin, 85px);
+	width: auto;
+	max-width: 100%;
+	object-fit: contain;
 }

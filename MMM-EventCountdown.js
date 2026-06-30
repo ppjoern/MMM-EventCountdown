@@ -29,7 +29,7 @@ Module.register("MMM-EventCountdown", {
 		minutesLabel: "MINUTES",
 		secondsLabel: "SECONDS",
 		size: "medium",            // "small" | "medium" | "large"
-		groupGap: "1ch",           // Abstand zwischen Zahlengruppen (z. B. "1ch", "0.5ch")
+		groupGap: 1,               // Abstand zwischen Zahlengruppen in "0"-Breiten (1ch)
 		noEventText: "NO SCHEDULED EVENT!",
 		runningText: "is running",
 		startsInText: "starts in",
@@ -129,129 +129,92 @@ Module.register("MMM-EventCountdown", {
 	getDom () {
 		const wrapper = document.createElement("div");
 		const size = this.config.size || "medium";
+		const groupGap = Number(this.config.groupGap);
 		wrapper.className = `event-countdown event-countdown--${size}`;
+		wrapper.style.setProperty("--countdown-group-gap", `${Number.isFinite(groupGap) ? groupGap : 1}ch`);
 
 		if (!this.eventState.hasEvent) {
-			const table = document.createElement("table");
-			table.className = "tableCountdown";
-
-			const headRow = document.createElement("tr");
-			const headCell = document.createElement("th");
-			headCell.className = "light tableHead";
-			headCell.colSpan = 3;
-			headCell.textContent = this.config.noEventText;
-			headRow.appendChild(headCell);
-			table.appendChild(headRow);
-
-			wrapper.appendChild(table);
+			wrapper.appendChild(this.el("div", "event-countdown__title light", this.config.noEventText));
 			return wrapper;
 		}
 
 		const isRunning = this.eventState.isRunning;
-		const eventStart = this.eventState.startDate;
-		const eventEnd = this.eventState.endDate;
 		const now = Math.floor(Date.now() / 1000);
-		const timeDiff = isRunning ? eventEnd - now : eventStart - now;
+		const timeDiff = isRunning
+			? this.eventState.endDate - now
+			: this.eventState.startDate - now;
 		const color = this.getCountdownColor(timeDiff, isRunning);
-		const colCount = this.config.showColons ? 5 : 3;
+
+		wrapper.appendChild(this.el("div", "event-countdown__title light", (this.eventState.title || "").toUpperCase()));
+		wrapper.appendChild(this.el("div", "event-countdown__subtitle light dimmed",
+			isRunning ? this.config.runningText : this.config.startsInText));
 
 		const diffDaysNum = Math.floor(timeDiff / 86400);
-		let diffDays = diffDaysNum;
-		let diffHours = Math.floor((timeDiff % 86400) / 3600);
-		let diffMinutes = Math.floor((timeDiff % 3600) / 60);
-		let diffSeconds = Math.floor(timeDiff % 60);
-
-		if (diffDays < 10) diffDays = "0" + diffDays;
-		if (diffHours < 10) diffHours = "0" + diffHours;
-		if (diffMinutes < 10) diffMinutes = "0" + diffMinutes;
-		if (diffSeconds < 10) diffSeconds = "0" + diffSeconds;
-
-		const table = document.createElement("table");
-		table.className = "tableCountdown";
-
-		const headRow = document.createElement("tr");
-		const headCell = document.createElement("th");
-		headCell.className = "light tableHead";
-		headCell.colSpan = colCount;
-		headCell.textContent = (this.eventState.title || "").toUpperCase();
-		headRow.appendChild(headCell);
-		table.appendChild(headRow);
-
-		const titleRow = document.createElement("tr");
-		const titleCell = document.createElement("td");
-		titleCell.className = "light dimmed tableFooterlow";
-		titleCell.colSpan = colCount;
-		titleCell.textContent = isRunning ? this.config.runningText : this.config.startsInText;
-		titleRow.appendChild(titleCell);
-		table.appendChild(titleRow);
+		const pad = (n) => String(n).padStart(2, "0");
 
 		let values;
 		let labels;
 		if (diffDaysNum > 0) {
-			values = [diffDays, diffHours, diffMinutes];
+			values = [pad(diffDaysNum), pad(Math.floor((timeDiff % 86400) / 3600)), pad(Math.floor((timeDiff % 3600) / 60))];
 			labels = [this.config.daysLabel, this.config.hoursLabel, this.config.minutesLabel];
 		} else {
-			values = [diffHours, diffMinutes, diffSeconds];
+			values = [
+				pad(Math.floor((timeDiff % 86400) / 3600)),
+				pad(Math.floor((timeDiff % 3600) / 60)),
+				pad(Math.floor(timeDiff % 60)),
+			];
 			labels = [this.config.hoursLabel, this.config.minutesLabel, this.config.secondsLabel];
 		}
 
-		const timeRow = document.createElement("tr");
+		const timer = document.createElement("div");
+		timer.className = "event-countdown__timer";
+
 		for (let i = 0; i < 3; i++) {
 			if (i > 0 && this.config.showColons) {
-				const colonCell = document.createElement("td");
-				colonCell.className = "tableColon thin";
-				colonCell.textContent = ":";
-				colonCell.style.color = color;
-				timeRow.appendChild(colonCell);
+				const colon = this.el("span", "event-countdown__colon thin", ":");
+				colon.style.color = color;
+				timer.appendChild(colon);
 			}
 
-			const valueCell = document.createElement("td");
-			valueCell.className = "tableTime thin";
-			valueCell.textContent = values[i];
-			valueCell.style.color = color;
-			timeRow.appendChild(valueCell);
-		}
-		table.appendChild(timeRow);
+			const unit = document.createElement("div");
+			unit.className = "event-countdown__unit";
 
-		const labelRow = document.createElement("tr");
-		for (let i = 0; i < 3; i++) {
-			if (i > 0 && this.config.showColons) {
-				const colonSpacer = document.createElement("td");
-				colonSpacer.className = "tableColonSpacer";
-				labelRow.appendChild(colonSpacer);
-			}
-
-			const labelCell = document.createElement("td");
-			labelCell.className = "tableFooter light dimmed";
-			labelCell.textContent = labels[i];
-			labelRow.appendChild(labelCell);
+			const value = this.el("span", "event-countdown__value thin", values[i]);
+			value.style.color = color;
+			unit.appendChild(value);
+			unit.appendChild(this.el("span", "event-countdown__label light dimmed", labels[i]));
+			timer.appendChild(unit);
 		}
-		table.appendChild(labelRow);
+
+		wrapper.appendChild(timer);
 
 		if (this.config.showLight) {
-			const remainMinutes = Math.max(0, Math.floor(timeDiff / 60));
-			const lightIndex = Math.min(5, Math.max(1, remainMinutes <= 3 ? remainMinutes + 1 : 5));
-			const prefix = isRunning ? "lights_g" : "lights_r";
-			const lightHeight = 85;
-
-			const lightRow = document.createElement("tr");
-			lightRow.className = "tableTime";
-			const lightCell = document.createElement("td");
-			lightCell.className = "tableHead";
-			lightCell.colSpan = colCount;
-
-			const img = document.createElement("img");
-			img.src = `modules/MMM-EventCountdown/images/${prefix}${lightIndex}.png`;
-			img.height = lightHeight;
-			img.alt = isRunning ? "Event läuft" : "Countdown";
-			lightCell.appendChild(img);
-
-			lightRow.appendChild(lightCell);
-			table.appendChild(lightRow);
+			wrapper.appendChild(this.createTrafficLight(timeDiff, isRunning));
 		}
 
-		wrapper.appendChild(table);
 		return wrapper;
+	},
+
+	el (tag, className, text) {
+		const node = document.createElement(tag);
+		if (className) node.className = className;
+		if (text !== undefined) node.textContent = text;
+		return node;
+	},
+
+	createTrafficLight (timeDiff, isRunning) {
+		const remainMinutes = Math.max(0, Math.floor(timeDiff / 60));
+		const lightIndex = Math.min(5, Math.max(1, remainMinutes <= 3 ? remainMinutes + 1 : 5));
+		const prefix = isRunning ? "lights_g" : "lights_r";
+
+		const wrap = document.createElement("div");
+		wrap.className = "event-countdown__light";
+		const img = document.createElement("img");
+		img.className = "event-countdown__light-img";
+		img.src = `modules/MMM-EventCountdown/images/${prefix}${lightIndex}.png`;
+		img.alt = isRunning ? "Event läuft" : "Countdown";
+		wrap.appendChild(img);
+		return wrap;
 	},
 
 	getCountdownColor (timeDiff, isRunning) {
