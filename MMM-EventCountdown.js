@@ -217,8 +217,7 @@ Module.register("MMM-EventCountdown", {
 
 	/**
 	 * Skalierung pro Browser-Fenster.
-	 * HDMI-Spiegel (Pi) melden oft nur 1080p – obwohl der TV 4K ist.
-	 * adaptiveScale vergrößert dort automatisch, 4K-Browser bleibt unverändert.
+	 * Nur bei kleinem gemeldetem Screen (Pi/HDMI ~1080p) – 4K-Browser bleiben unverändert.
 	 */
 	getClientScale () {
 		let scale = Number(this.config.scale);
@@ -226,21 +225,19 @@ Module.register("MMM-EventCountdown", {
 
 		if (this.config.adaptiveScale === false) return scale;
 
-		const h = window.innerHeight;
 		const screenH = window.screen ? window.screen.height : 0;
 		const screenW = window.screen ? window.screen.width : 0;
-		const is4KPanel = screenH >= 2000 || screenW >= 3600;
+		const maxScreen = Math.max(screenH, screenW);
 
-		// Kleiner Viewport → stärker hochskalieren (Pi/HDMI meldet oft nur 1080p)
-		if (h <= 800) scale *= 2.5;
-		else if (h <= 1080) scale *= 2.2;
-		else if (h <= 1200) scale *= 1.85;
-		else if (h <= 1440) scale *= 1.4;
+		// 4K-Browser: großer Screen → kein automatischer Boost (vmin reicht)
+		if (maxScreen > 1920) return scale;
 
-		// 4K-TV mit kleinem Viewport (HDMI-Spiegel): zusätzlicher Boost
-		if (is4KPanel && h <= 1200) {
-			scale *= 1.2;
-		}
+		const h = window.innerHeight;
+
+		// Pi/HDMI: meldet 1080p-Screen, TV skaliert hoch → Zahlen größer machen
+		if (h <= 800) scale *= 2.4;
+		else if (h <= 1080) scale *= 2.1;
+		else if (h <= 1200) scale *= 1.75;
 
 		return scale;
 	},
