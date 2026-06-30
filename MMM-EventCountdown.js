@@ -133,7 +133,7 @@ Module.register("MMM-EventCountdown", {
 		const wrapper = document.createElement("div");
 		const size = this.config.size || "medium";
 		const groupGap = Number(this.config.groupGap);
-		wrapper.className = `event-countdown event-countdown--${size}`;
+		wrapper.className = `event-countdown event-countdown--${size}${this.config.showDebugBorders ? " event-countdown--debug" : ""}`;
 		wrapper.style.setProperty("--countdown-group-gap", `${Number.isFinite(groupGap) ? groupGap : 1}ch`);
 		const unitWidth = Number(this.config.unitWidth);
 		wrapper.style.setProperty("--countdown-unit-width", `${Number.isFinite(unitWidth) ? unitWidth : 2.5}ch`);
