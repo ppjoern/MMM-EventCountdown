@@ -144,7 +144,6 @@ Module.register("MMM-EventCountdown", {
 			wrapper.setAttribute("data-ec-debug", "1");
 			this.ensureDebugStyles();
 			wrapper.appendChild(this.createDebugBadge());
-			this.applyDebugBorder(wrapper, "#ffff00", 6);
 		}
 		wrapper.style.setProperty("--countdown-group-gap", `${Number.isFinite(groupGap) ? groupGap : 1}ch`);
 		const unitWidth = Number(this.config.unitWidth);
@@ -157,9 +156,7 @@ Module.register("MMM-EventCountdown", {
 		}
 
 		if (!this.eventState.hasEvent) {
-			const title = this.el("div", "event-countdown__title light thin", this.config.noEventText);
-			this.applyDebugBorder(title, "#ff66ff");
-			wrapper.appendChild(title);
+			wrapper.appendChild(this.el("div", "event-countdown__title light thin", this.config.noEventText));
 			return wrapper;
 		}
 
@@ -170,14 +167,9 @@ Module.register("MMM-EventCountdown", {
 			: this.eventState.startDate - now;
 		const color = this.getCountdownColor(timeDiff, isRunning);
 
-		const titleEl = this.el("div", "event-countdown__title light thin", (this.eventState.title || "").toUpperCase());
-		this.applyDebugBorder(titleEl, "#ff66ff");
-		wrapper.appendChild(titleEl);
-
-		const subtitleEl = this.el("div", "event-countdown__subtitle light dimmed",
-			isRunning ? this.config.runningText : this.config.startsInText);
-		this.applyDebugBorder(subtitleEl, "#cc66ff");
-		wrapper.appendChild(subtitleEl);
+		wrapper.appendChild(this.el("div", "event-countdown__title light thin", (this.eventState.title || "").toUpperCase()));
+		wrapper.appendChild(this.el("div", "event-countdown__subtitle light dimmed",
+			isRunning ? this.config.runningText : this.config.startsInText));
 
 		const diffDaysNum = Math.floor(timeDiff / 86400);
 		const pad = (n) => String(n).padStart(2, "0");
@@ -198,37 +190,28 @@ Module.register("MMM-EventCountdown", {
 
 		const timer = document.createElement("div");
 		timer.className = "event-countdown__timer";
-		this.applyDebugBorder(timer, "#ff9900");
 
 		for (let i = 0; i < 3; i++) {
 			if (i > 0 && this.config.showColons) {
 				const colon = this.el("span", "event-countdown__colon thin", ":");
 				colon.style.color = color;
-				this.applyDebugBorder(colon, "#ffffff");
 				timer.appendChild(colon);
 			}
 
 			const column = document.createElement("div");
 			column.className = "event-countdown__column";
-			this.applyDebugBorder(column, "#ff3333");
 
 			const value = this.el("span", "event-countdown__value thin", values[i]);
 			value.style.color = color;
-			this.applyDebugBorder(value, "#33ccff");
 			column.appendChild(value);
-
-			const label = this.el("span", "event-countdown__label light dimmed", labels[i]);
-			this.applyDebugBorder(label, "#33ff66");
-			column.appendChild(label);
+			column.appendChild(this.el("span", "event-countdown__label light dimmed", labels[i]));
 			timer.appendChild(column);
 		}
 
 		wrapper.appendChild(timer);
 
 		if (this.config.showLight) {
-			const light = this.createTrafficLight(timeDiff, isRunning);
-			this.applyDebugBorder(light, "#ffcc00");
-			wrapper.appendChild(light);
+			wrapper.appendChild(this.createTrafficLight(timeDiff, isRunning));
 		}
 
 		return wrapper;
@@ -270,10 +253,12 @@ Module.register("MMM-EventCountdown", {
 	 */
 	ensureDebugStyles () {
 		const id = "mmm-eventcountdown-debug-style";
-		if (document.getElementById(id)) return;
+		const existing = document.getElementById(id);
+		if (existing) existing.remove();
 
 		const style = document.createElement("style");
 		style.id = id;
+		// outline statt border → verändert keine Zellbreite (kein Überlappen)
 		style.textContent = `
 			.module.MMM-EventCountdown .event-countdown__debug-badge {
 				display: block !important;
@@ -282,7 +267,7 @@ Module.register("MMM-EventCountdown", {
 				width: fit-content !important;
 				color: #000 !important;
 				background: #ffff00 !important;
-				border: 3px solid #ff0000 !important;
+				outline: 3px solid #ff0000 !important;
 				font-size: 16px !important;
 				font-weight: 700 !important;
 				line-height: 1.2 !important;
@@ -290,59 +275,36 @@ Module.register("MMM-EventCountdown", {
 				text-transform: uppercase !important;
 			}
 			.module.MMM-EventCountdown .event-countdown--debug {
-				border: 6px solid #ffff00 !important;
-				padding: 6px !important;
-				box-shadow: 0 0 0 3px #ff0000 inset !important;
+				outline: 4px solid #ffff00 !important;
+				outline-offset: 4px !important;
 			}
 			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__timer {
-				border: 4px solid #ff9900 !important;
-				padding: 4px !important;
+				outline: 3px solid #ff9900 !important;
+				outline-offset: 2px !important;
 			}
 			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__column {
-				border: 4px solid #ff2222 !important;
-				background: rgba(255, 0, 0, 0.18) !important;
-				padding: 2px !important;
+				outline: 3px solid #ff2222 !important;
+				outline-offset: 1px !important;
+				background: rgba(255, 0, 0, 0.12) !important;
 			}
 			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__value {
-				display: inline-block !important;
-				border: 4px solid #00ccff !important;
-				background: rgba(0, 204, 255, 0.2) !important;
-				padding: 2px 4px !important;
-				min-width: 1ch !important;
+				outline: 2px solid #00ccff !important;
+				outline-offset: 0 !important;
+				background: rgba(0, 204, 255, 0.1) !important;
 			}
 			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__label {
-				display: inline-block !important;
-				border: 4px solid #00ff66 !important;
-				background: rgba(0, 255, 102, 0.2) !important;
-				padding: 2px 4px !important;
+				outline: 2px solid #00ff66 !important;
+				outline-offset: 0 !important;
+				background: rgba(0, 255, 102, 0.1) !important;
 			}
 			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__title {
-				border: 3px solid #ff66ff !important;
+				outline: 2px solid #ff66ff !important;
 			}
 			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__subtitle {
-				border: 3px solid #cc66ff !important;
-			}
-			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__colon {
-				display: inline-block !important;
-				border: 3px solid #ffffff !important;
+				outline: 2px solid #cc66ff !important;
 			}
 		`;
 		document.head.appendChild(style);
-	},
-
-	/**
-	 * Zusätzliche Inline-Rahmen (zweite Absicherung neben ensureDebugStyles).
-	 */
-	applyDebugBorder (node, color, widthPx = 4) {
-		if (!this.isDebugBorders() || !node || !node.style) return;
-		node.style.setProperty("border", `${widthPx}px solid ${color}`, "important");
-		node.style.setProperty("box-shadow", `0 0 0 2px ${color}`, "important");
-		node.style.setProperty("box-sizing", "border-box", "important");
-		if (node.tagName === "SPAN") {
-			node.style.setProperty("display", "inline-block", "important");
-			node.style.setProperty("min-width", "1ch", "important");
-			node.style.setProperty("padding", "2px 4px", "important");
-		}
 	},
 
 	/**

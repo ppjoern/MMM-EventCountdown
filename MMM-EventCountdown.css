@@ -78,11 +78,13 @@
 	width: var(--countdown-unit-width);
 	min-width: var(--countdown-unit-width);
 	max-width: var(--countdown-unit-width);
-	overflow: visible;
+	overflow: hidden;
 }
 
 .event-countdown__value {
+	display: block;
 	width: 100%;
+	max-width: 100%;
 	font-size: 1em;
 	font-weight: 100;
 	line-height: 1;
@@ -90,16 +92,19 @@
 	font-variant-numeric: tabular-nums;
 	text-align: center;
 	white-space: nowrap;
+	overflow: hidden;
 }
 
 .event-countdown__label {
+	display: block;
 	width: 100%;
+	max-width: 100%;
 	margin-top: 0.12em;
 	font-size: calc(1em * var(--countdown-label-ratio));
 	line-height: 1.2;
 	text-align: center;
 	white-space: nowrap;
-	overflow: visible;
+	overflow: hidden;
 }
 
 .event-countdown__colon {
@@ -124,48 +129,25 @@
 	object-fit: contain;
 }
 
-/* --- Debug: dicke Rahmen (zusätzlich zu Inline-Styles aus JS) --- */
+/* --- Debug: outline (verändert Layout nicht) --- */
 
-.event-countdown--debug .event-countdown__column,
-.event-countdown--debug .event-countdown__value,
-.event-countdown--debug .event-countdown__label,
-.event-countdown--debug .event-countdown__timer,
-.event-countdown--debug .event-countdown__title,
-.event-countdown--debug .event-countdown__subtitle,
-.event-countdown--debug .event-countdown__colon {
-	border: 3px solid #ff3333 !important;
-	box-sizing: border-box !important;
-}
-
-.event-countdown--debug .event-countdown__value,
-.event-countdown--debug .event-countdown__label,
-.event-countdown--debug .event-countdown__colon {
-	display: inline-block !important;
+.event-countdown--debug .event-countdown__column {
+	outline: 3px solid #ff2222;
+	outline-offset: 1px;
+	background: rgba(255, 0, 0, 0.1);
 }
 
 .event-countdown--debug .event-countdown__value {
-	border-color: #33ccff !important;
-	background: rgba(51, 204, 255, 0.12) !important;
+	outline: 2px solid #33ccff;
+	background: rgba(51, 204, 255, 0.1);
 }
 
 .event-countdown--debug .event-countdown__label {
-	border-color: #33ff66 !important;
-	background: rgba(51, 255, 102, 0.12) !important;
-}
-
-.event-countdown--debug .event-countdown__column {
-	border-color: #ff3333 !important;
-	background: rgba(255, 51, 51, 0.1) !important;
+	outline: 2px solid #33ff66;
+	background: rgba(51, 255, 102, 0.1);
 }
 
 .event-countdown--debug .event-countdown__timer {
-	border-color: #ff9900 !important;
-}
-
-.event-countdown--debug .event-countdown__title {
-	border-color: #ff66ff !important;
-}
-
-.event-countdown--debug .event-countdown__subtitle {
-	border-color: #cc66ff !important;
+	outline: 3px solid #ff9900;
+	outline-offset: 2px;
 }
