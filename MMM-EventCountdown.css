@@ -76,6 +76,7 @@
 }
 
 .event-countdown__subtitle {
+	color: #fff;
 	font-size: var(--ec-subtitle);
 	line-height: 1.2;
 	margin-bottom: 0.15em;
@@ -91,6 +92,23 @@
 	gap: var(--ec-gap);
 	font-size: var(--ec-value);
 	line-height: 1;
+}
+
+/* Mit Doppelpunkten: kein Flex-Gap (sonst doppelt), Abstand nur in .event-countdown__sep */
+
+.event-countdown__timer--colons {
+	gap: 0;
+}
+
+.event-countdown__sep {
+	display: flex;
+	flex: 0 0 var(--ec-gap);
+	align-items: flex-start;
+	align-self: flex-start;
+	justify-content: center;
+	width: var(--ec-gap);
+	min-width: var(--ec-gap);
+	overflow: visible;
 }
 
 /* --- 5. Spalten (Zelle = Wert + Label) --- */
@@ -171,6 +189,11 @@
 .event-countdown--debug .event-countdown__label {
 	outline: 2px solid #3f6;
 	background: rgba(51, 255, 102, 0.1);
+}
+
+.event-countdown--debug .event-countdown__sep {
+	outline: 2px solid #fff;
+	background: rgba(255, 255, 255, 0.08);
 }
 
 .event-countdown--debug .event-countdown__timer {

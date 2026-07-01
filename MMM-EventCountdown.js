@@ -167,7 +167,7 @@ Module.register("MMM-EventCountdown", {
 		const color = this.getCountdownColor(timeDiff, isRunning);
 
 		wrapper.appendChild(this.el("div", "event-countdown__title light thin", (this.eventState.title || "").toUpperCase()));
-		wrapper.appendChild(this.el("div", "event-countdown__subtitle light dimmed",
+		wrapper.appendChild(this.el("div", "event-countdown__subtitle light thin",
 			isRunning ? this.config.runningText : this.config.startsInText));
 
 		const diffDaysNum = Math.floor(timeDiff / 86400);
@@ -189,12 +189,18 @@ Module.register("MMM-EventCountdown", {
 
 		const timer = document.createElement("div");
 		timer.className = "event-countdown__timer";
+		if (this.config.showColons) {
+			timer.classList.add("event-countdown__timer--colons");
+		}
 
 		for (let i = 0; i < 3; i++) {
 			if (i > 0 && this.config.showColons) {
+				const sep = document.createElement("div");
+				sep.className = "event-countdown__sep";
 				const colon = this.el("span", "event-countdown__colon thin", ":");
 				colon.style.color = color;
-				timer.appendChild(colon);
+				sep.appendChild(colon);
+				timer.appendChild(sep);
 			}
 
 			const column = document.createElement("div");
