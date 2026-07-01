@@ -44,7 +44,10 @@
 		scaleBrowser: 1,         // nur 4K-Browser (Screen > 1920px)
 		scaleHdmi: 1,            // nur Pi/HDMI (Screen ≤ 1920px), z. B. 1.2
 		adaptiveScale: true,
-		showDebugBorders: true,  // true = dicke farbige Rahmen (zum Layout-Test)
+		showDebugBorders: true,
+		// Alternativ ohne config.js:
+		// Browser-URL: http://<pi>:8080/?debugBorders=1
+		// oder Konsole: localStorage.setItem("MMM-EventCountdown-debug","1"); location.reload();
 		groupGap: 1,
 
 		// --- Beschriftungen ---

@@ -36,7 +36,7 @@ Module.register("MMM-EventCountdown", {
 		scaleBrowser: null,        // Manuell für 4K-Browser (Screen > 1920px), z. B. 0.9
 		scaleHdmi: null,           // Manuell für Pi/HDMI (Screen ≤ 1920px), z. B. 1.2
 		adaptiveScale: true,       // Auto-Boost nur für Pi/HDMI (kleiner Screen)
-		showDebugBorders: false,   // true = dicke Rahmen um alle Layout-Zellen
+		showDebugBorders: false,   // true | URL ?debugBorders=1 | localStorage MMM-EventCountdown-debug=1
 		groupGap: 1,
 		noEventText: "NO SCHEDULED EVENT!",
 		runningText: "is running",
@@ -141,7 +141,10 @@ Module.register("MMM-EventCountdown", {
 		wrapper.className = `event-countdown event-countdown--${size}`;
 		if (this.isDebugBorders()) {
 			wrapper.classList.add("event-countdown--debug");
-			this.applyDebugBorder(wrapper, "#ffff00", 4);
+			wrapper.setAttribute("data-ec-debug", "1");
+			this.ensureDebugStyles();
+			wrapper.appendChild(this.createDebugBadge());
+			this.applyDebugBorder(wrapper, "#ffff00", 6);
 		}
 		wrapper.style.setProperty("--countdown-group-gap", `${Number.isFinite(groupGap) ? groupGap : 1}ch`);
 		const unitWidth = Number(this.config.unitWidth);
@@ -239,19 +242,106 @@ Module.register("MMM-EventCountdown", {
 	},
 
 	isDebugBorders () {
-		return this.config.showDebugBorders === true || this.config.showDebugBorders === "true";
+		try {
+			if (typeof window !== "undefined" && window.location) {
+				if (/[?&]debugBorders=1(?:&|$)/.test(window.location.search)) return true;
+				if (window.localStorage && window.localStorage.getItem("MMM-EventCountdown-debug") === "1") {
+					return true;
+				}
+			}
+		} catch (e) {
+			// localStorage blockiert (Safari privat etc.)
+		}
+
+		const cfg = this.config.showDebugBorders;
+		return cfg === true || cfg === "true" || cfg === 1 || cfg === "1";
+	},
+
+	createDebugBadge () {
+		const badge = document.createElement("div");
+		badge.className = "event-countdown__debug-badge";
+		badge.textContent = "DEBUG RAHMEN AN";
+		badge.setAttribute("aria-hidden", "true");
+		return badge;
 	},
 
 	/**
-	 * Inline-Rahmen – überlebt MagicMirror-Global-CSS (outline auf span funktioniert oft nicht).
+	 * Globales <style> ins Dokument – höhere Spezifität als MagicMirror-main.css
 	 */
-	applyDebugBorder (node, color, widthPx = 3) {
+	ensureDebugStyles () {
+		const id = "mmm-eventcountdown-debug-style";
+		if (document.getElementById(id)) return;
+
+		const style = document.createElement("style");
+		style.id = id;
+		style.textContent = `
+			.module.MMM-EventCountdown .event-countdown__debug-badge {
+				display: block !important;
+				margin: 0 auto 8px !important;
+				padding: 6px 12px !important;
+				width: fit-content !important;
+				color: #000 !important;
+				background: #ffff00 !important;
+				border: 3px solid #ff0000 !important;
+				font-size: 16px !important;
+				font-weight: 700 !important;
+				line-height: 1.2 !important;
+				letter-spacing: 0.05em !important;
+				text-transform: uppercase !important;
+			}
+			.module.MMM-EventCountdown .event-countdown--debug {
+				border: 6px solid #ffff00 !important;
+				padding: 6px !important;
+				box-shadow: 0 0 0 3px #ff0000 inset !important;
+			}
+			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__timer {
+				border: 4px solid #ff9900 !important;
+				padding: 4px !important;
+			}
+			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__column {
+				border: 4px solid #ff2222 !important;
+				background: rgba(255, 0, 0, 0.18) !important;
+				padding: 2px !important;
+			}
+			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__value {
+				display: inline-block !important;
+				border: 4px solid #00ccff !important;
+				background: rgba(0, 204, 255, 0.2) !important;
+				padding: 2px 4px !important;
+				min-width: 1ch !important;
+			}
+			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__label {
+				display: inline-block !important;
+				border: 4px solid #00ff66 !important;
+				background: rgba(0, 255, 102, 0.2) !important;
+				padding: 2px 4px !important;
+			}
+			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__title {
+				border: 3px solid #ff66ff !important;
+			}
+			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__subtitle {
+				border: 3px solid #cc66ff !important;
+			}
+			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__colon {
+				display: inline-block !important;
+				border: 3px solid #ffffff !important;
+			}
+		`;
+		document.head.appendChild(style);
+	},
+
+	/**
+	 * Zusätzliche Inline-Rahmen (zweite Absicherung neben ensureDebugStyles).
+	 */
+	applyDebugBorder (node, color, widthPx = 4) {
 		if (!this.isDebugBorders() || !node || !node.style) return;
 		node.style.setProperty("border", `${widthPx}px solid ${color}`, "important");
+		node.style.setProperty("box-shadow", `0 0 0 2px ${color}`, "important");
 		node.style.setProperty("box-sizing", "border-box", "important");
 		if (node.tagName === "SPAN") {
 			node.style.setProperty("display", "inline-block", "important");
 			node.style.setProperty("min-width", "1ch", "important");
+			node.style.setProperty("padding", "2px 4px", "important");
 		}
 	},
 
