@@ -6,7 +6,7 @@
   "author": "ppjoern",
   "license": "MIT",
   "dependencies": {
-    "node-ical": "^0.19.0"
+    "node-ical": "^0.26.1"
   },
   "devDependencies": {
     "grunt": "latest",
