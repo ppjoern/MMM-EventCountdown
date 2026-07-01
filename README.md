@@ -49,39 +49,51 @@ SECRET_CAL_URL_2="https://outlook.office365.com/owa/calendar/..."
 
 Datei: **`~/MagicMirror/config/config.js`**
 
-Vollständiger Modul-Block mit **allen Optionen** (direkt kopierbar):
+Root-Level in `config.js` (einmalig):
+
+```js
+let config = {
+  hideConfigSecrets: true,
+  // ...
+  modules: [ /* … */ ],
+};
+```
+
+Vollständiger Modul-Block (direkt in `modules: [ ... ]` einfügen):
 
 ```js
 {
   module: "MMM-EventCountdown",
   position: "middle_center",
-  header: "",
-  classes: "",
-  disabled: false,
 
   config: {
-    // --- Kalender (URLs in config.env, NICHT hier!) ---
+    // --- Kalender (URLs in config.env, hier nur Verweis!) ---
     calendars: [
       {
         name: "Mein Kalender",
         url: "${SECRET_CAL_URL_1}",
         fetchTimeout: 30000,
       },
-      // {
-      //   name: "Arbeit",
-      //   url: "${SECRET_CAL_URL_2}",
-      // },
     ],
     allowedHosts: [],
 
     // --- Aktualisierung ---
-    fetchInterval: 60000,
-    customInterval: 1000,
+    fetchInterval: 60000,   // Kalender neu laden (ms)
+    customInterval: 1000,   // Countdown-Tick (ms)
 
     // --- Darstellung ---
     showLight: true,
-    showColons: false,      // true = 05:23:45  |  false = 052345 (kompakt)
-    size: "medium",         // "small" | "medium" | "large"
+    showColons: false,      // true = 05:23:45  |  false = 052345
+    useUrgencyColors: true, // Farben je nach Restzeit | false = immer weiß
+
+    size: "xlarge",         // small | medium | large | xlarge
+    unitWidth: 2.8,         // Breite jeder Zahlengruppe (ch)
+    groupGap: 0.5,          // Abstand zwischen Gruppen (ch)
+    scale: 1,               // optional: globaler Größenfaktor
+    // scaleBrowser: 1,     // optional: nur großer Screen (>1920px)
+    // scaleHdmi: 1.1,      // optional: nur Pi/HDMI (≤1920px)
+
+    showDebugBorders: false, // Layout-Rahmen (siehe unten)
 
     // --- Beschriftungen ---
     daysLabel: "DAYS",
@@ -95,29 +107,21 @@ Vollständiger Modul-Block mit **allen Optionen** (direkt kopierbar):
 },
 ```
 
-> Die gleiche Vorlage liegt auch als Datei `config.example.js` im Modul-Ordner.
+> Die gleiche Vorlage liegt als `config.example.js` im Modul-Ordner.
 
-Minimal-Beispiel in einer kompletten `config.js`:
+Minimal-Beispiel:
 
 ```js
-let config = {
-  address: "0.0.0.0",
-  port: 8080,
-  hideConfigSecrets: true,
-
-  modules: [
-    {
-      module: "MMM-EventCountdown",
-      position: "middle_center",
-      config: {
-        calendars: [{ name: "Mein Kalender", url: "${SECRET_CAL_URL_1}" }],
-        showLight: true,
-        showColons: false,
-        size: "medium",
-      },
-    },
-  ],
-};
+{
+  module: "MMM-EventCountdown",
+  position: "middle_center",
+  config: {
+    calendars: [{ name: "Mein Kalender", url: "${SECRET_CAL_URL_1}" }],
+    size: "xlarge",
+    showColons: false,
+    showLight: true,
+  },
+},
 ```
 
 ### Zusammenfassung: Wo was hingehört
@@ -147,56 +151,105 @@ let config = {
 
 ## Konfigurationsoptionen
 
+### Kalender & Sicherheit
+
 | Option | Beschreibung | Standard |
 |--------|-------------|----------|
-| `calendars` | Array mit Kalender-Objekten `{ name, url }` | `[]` |
+| `calendars` | Array mit `{ name, url, fetchTimeout? }` | `[]` |
 | `calendars[].name` | Anzeigename (nur für Logs) | – |
 | `calendars[].url` | Verweis auf Env-Variable, z. B. `"${SECRET_CAL_URL_1}"` | – |
-| `allowedHosts` | Zusätzliche erlaubte Domains für SSRF-Whitelist | `[]` |
-| `fetchInterval` | Intervall für Kalender-Neuladen (ms) | `60000` |
+| `calendars[].fetchTimeout` | Timeout pro Kalender-Abruf (ms) | `30000` |
+| `allowedHosts` | Zusätzliche erlaubte Domains (SSRF-Whitelist) | `[]` |
+| `fetchInterval` | Kalender-Neuladen (ms) | `60000` |
 | `customInterval` | Countdown-Aktualisierung (ms) | `1000` |
-| `showLight` | Ampel-Grafik anzeigen | `false` |
-| `showColons` | Doppelpunkte zwischen Zahlengruppen (`05:23:45`) | `false` |
-| `size` | Preset: `"small"`, `"medium"`, `"large"`, `"xlarge"` (CSS `clamp` in vmin) | `"medium"` |
-| `scale` | Manueller Faktor auf die clamp-Größe (Fallback) | `1` |
-| `scaleBrowser` | Optional: Faktor nur für großen Screen (>1920px) | `null` |
-| `scaleHdmi` | Optional: Faktor nur für Pi/HDMI (≤1920px) | `null` |
-| `unitWidth` | Spaltenbreite in `ch` | `2.8` |
-| `groupGap` | Abstand zwischen Gruppen in `ch` | `0.5` |
-| `showDebugBorders` | Layout-Rahmen zum Feintuning | `false` |
-| `useUrgencyColors` | Original-Farben je nach Restzeit | `true` |
-| `daysLabel` | Label für Tage | `"DAYS"` |
-| `hoursLabel` | Label für Stunden | `"HOURS"` |
-| `minutesLabel` | Label für Minuten | `"MINUTES"` |
-| `secondsLabel` | Label für Sekunden | `"SECONDS"` |
-| `noEventText` | Text wenn kein Event gefunden | `"NO SCHEDULED EVENT!"` |
+
+### Darstellung
+
+| Option | Beschreibung | Standard |
+|--------|-------------|----------|
+| `size` | Größen-Preset: `small`, `medium`, `large`, `xlarge` | `"medium"` |
+| `unitWidth` | Breite jeder Zahlengruppe in `ch` | `2.8` |
+| `groupGap` | Abstand zwischen Zahlengruppen in `ch` | `0.5` |
+| `showColons` | Doppelpunkte zwischen Gruppen (`05:23:45`) | `false` |
+| `showLight` | Ampel-Grafik unter dem Countdown | `false` |
+| `useUrgencyColors` | Farben je nach Restzeit (grün → orange) | `true` |
+| `valueSize` | Feste Schriftgröße (z. B. `"12rem"`) – nur bei **einem** Display | `null` |
+
+### Skalierung (optional)
+
+| Option | Beschreibung | Standard |
+|--------|-------------|----------|
+| `scale` | Globaler Faktor auf die CSS-Größe | `1` |
+| `scaleBrowser` | Faktor nur für großen Screen (max. Dimension > 1920px) | `null` (= `scale`) |
+| `scaleHdmi` | Faktor nur für kleinen Screen (Pi/HDMI, ≤ 1920px) | `null` (= `scale`) |
+
+Die Basisgröße kommt aus **CSS `clamp(vmin)`** und passt sich pro Browser automatisch an. `scale*` ist nur für Feintuning.
+
+| Preset | CSS-Formel (Ziffernhöhe) |
+|--------|--------------------------|
+| `small` | `clamp(4vmin, 8vmin, 15vmin)` |
+| `medium` | `clamp(5vmin, 11vmin, 20vmin)` |
+| `large` | `clamp(6vmin, 13vmin, 26vmin)` |
+| `xlarge` | `clamp(8vmin, 17vmin, 34vmin)` |
+
+### Texte
+
+| Option | Beschreibung | Standard |
+|--------|-------------|----------|
+| `daysLabel` | Label Tage | `"DAYS"` |
+| `hoursLabel` | Label Stunden | `"HOURS"` |
+| `minutesLabel` | Label Minuten | `"MINUTES"` |
+| `secondsLabel` | Label Sekunden | `"SECONDS"` |
+| `noEventText` | Text wenn kein Event | `"NO SCHEDULED EVENT!"` |
 | `runningText` | Text während Event läuft | `"is running"` |
 | `startsInText` | Text vor Event-Start | `"starts in"` |
-| `calendars[].fetchTimeout` | Timeout pro Kalender-Abruf (ms) | `30000` |
 
-### Responsive Größe (clamp)
+### Debug
 
-Die Schriftgröße kommt aus **CSS `clamp(vmin)`** – jeder Browser skaliert automatisch mit seinem Viewport:
+| Option | Beschreibung | Standard |
+|--------|-------------|----------|
+| `showDebugBorders` | Farbige Rahmen um Layout-Zellen | `false` |
 
-| Preset | Formel |
-|--------|--------|
-| small | `clamp(4vmin, 8vmin, 15vmin)` |
-| medium | `clamp(5vmin, 11vmin, 20vmin)` |
-| large | `clamp(6vmin, 13vmin, 26vmin)` |
-| xlarge | `clamp(8vmin, 17vmin, 34vmin)` |
+Alternativ ohne `config.js`:
 
-Kein JavaScript-Auto-Boost mehr. Optional nur manuell: `scale`, `scaleBrowser`, `scaleHdmi`.
+- URL: `http://<spiegel-ip>:8080/?debugBorders=1`
+- Browser-Konsole: `localStorage.setItem("MMM-EventCountdown-debug","1"); location.reload();`
 
-### Gemischte Displays (4K-Browser + HDMI-Spiegel)
+---
 
-Eine `config.js` für alle Clients:
+## Tipps zur Feinjustierung
+
+### Größe
 
 ```js
-size: "large",
-// optional Feintuning:
+size: "xlarge",   // Hauptregler – skaliert mit Viewport (vmin)
+```
+
+### Abstände zwischen Zifferngruppen
+
+```js
+groupGap: 0.5,    // kleiner = enger  |  größer = weiter
+unitWidth: 2.8,   // Spaltenbreite pro Gruppe (2 Ziffern + etwas Luft)
+```
+
+Bei `showColons: true` sitzt der Doppelpunkt **in** der `groupGap`-Breite – der Abstand wird nicht verdoppelt.
+
+### Gemischte Displays (Browser + HDMI)
+
+Eine `config.js` für alle Clients. Jeder Browser rechnet mit seinem Viewport:
+
+```js
+size: "xlarge",
+// nur falls ein Display noch abweicht:
 // scaleBrowser: 0.95,
 // scaleHdmi: 1.1,
 ```
+
+### Farben
+
+- `useUrgencyColors: true` – Countdown-Ziffern wechseln je nach Restzeit; laufende Events grün
+- Titel und Untertitel („starts in“ / „is running“) sind immer weiß
+- Bei `showColons: true` haben Doppelpunkte die gleiche Farbe wie die Ziffern
 
 ---
 
