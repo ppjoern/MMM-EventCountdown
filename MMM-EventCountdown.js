@@ -36,7 +36,7 @@ Module.register("MMM-EventCountdown", {
 		scaleBrowser: null,        // Optional nur großer Screen (>1920px)
 		scaleHdmi: null,           // Optional nur kleiner Screen (Pi/HDMI)
 		showDebugBorders: false,
-		groupGap: 1,
+		groupGap: 0.5,
 		noEventText: "NO SCHEDULED EVENT!",
 		runningText: "is running",
 		startsInText: "starts in",
@@ -144,7 +144,7 @@ Module.register("MMM-EventCountdown", {
 			this.ensureDebugStyles();
 			wrapper.appendChild(this.createDebugBadge());
 		}
-		wrapper.style.setProperty("--ec-gap", `${Number.isFinite(groupGap) ? groupGap : 1}ch`);
+		wrapper.style.setProperty("--ec-gap", `${Number.isFinite(groupGap) ? groupGap : 0.5}ch`);
 		const unitWidth = Number(this.config.unitWidth);
 		wrapper.style.setProperty("--ec-unit-width", `${Number.isFinite(unitWidth) ? unitWidth : 2.8}ch`);
 		if (this.config.valueSize) {

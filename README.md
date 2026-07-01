@@ -162,7 +162,7 @@ let config = {
 | `scaleBrowser` | Optional: Faktor nur für großen Screen (>1920px) | `null` |
 | `scaleHdmi` | Optional: Faktor nur für Pi/HDMI (≤1920px) | `null` |
 | `unitWidth` | Spaltenbreite in `ch` | `2.8` |
-| `groupGap` | Abstand zwischen Gruppen in `ch` | `1` |
+| `groupGap` | Abstand zwischen Gruppen in `ch` | `0.5` |
 | `showDebugBorders` | Layout-Rahmen zum Feintuning | `false` |
 | `useUrgencyColors` | Original-Farben je nach Restzeit | `true` |
 | `daysLabel` | Label für Tage | `"DAYS"` |

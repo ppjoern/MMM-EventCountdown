@@ -39,7 +39,7 @@
 	--ec-title: calc(var(--ec-value) * var(--ec-ratio-title));
 	--ec-subtitle: calc(var(--ec-value) * var(--ec-ratio-subtitle));
 
-	--ec-gap: 1ch;
+	--ec-gap: 0.5ch;
 	--ec-unit-width: 2.8ch;
 	--ec-digit-spacing: -0.043em;
 

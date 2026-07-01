@@ -19,7 +19,7 @@
 
 		size: "xlarge",          // small | medium | large | xlarge
 		unitWidth: 2.8,          // Spaltenbreite (ch)
-		groupGap: 1,             // Abstand zwischen Gruppen (ch)
+		groupGap: 0.5,           // Abstand zwischen Gruppen (ch)
 		scale: 1,                // optional: globaler Faktor
 		// scaleBrowser: 1,      // optional: nur großer Screen
 		// scaleHdmi: 1.1,       // optional: nur Pi/HDMI
