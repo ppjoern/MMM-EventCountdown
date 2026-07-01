@@ -1,56 +1,31 @@
 /**
  * MMM-EventCountdown – vollständiger Modul-Block für ~/MagicMirror/config/config.js
  *
- * In config.env (geheime URL):
- *   SECRET_CAL_URL_1="https://calendar.google.com/calendar/ical/.../basic.ics"
- *
- * In config.js (Root-Level):
- *   hideConfigSecrets: true,
+ * Größe: rein CSS clamp(vmin) – skaliert pro Browser automatisch.
+ * Feintuning: size, scale / scaleBrowser / scaleHdmi, unitWidth, groupGap
  */
 {
 	module: "MMM-EventCountdown",
 	position: "middle_center",
-	header: "",
-	classes: "",
-	disabled: false,
-
 	config: {
-		// --- Kalender (echte URLs in config.env, hier nur Verweis!) ---
-		calendars: [
-			{
-				name: "Mein Kalender",
-				url: "${SECRET_CAL_URL_1}",
-				fetchTimeout: 30000,
-			},
-			// {
-			// 	name: "Arbeit",
-			// 	url: "${SECRET_CAL_URL_2}",
-			// 	fetchTimeout: 30000,
-			// },
-		],
+		calendars: [{ name: "Mein Kalender", url: "${SECRET_CAL_URL_1}" }],
 		allowedHosts: [],
-
-		// --- Aktualisierung ---
 		fetchInterval: 60000,
 		customInterval: 1000,
 
-		// --- Darstellung ---
 		showLight: true,
 		showColons: false,
 		useUrgencyColors: true,
-		unitWidth: 2.5,
-		size: "large",
-		scale: 1,                // Fallback für beide Displays
-		scaleBrowser: 1,         // nur 4K-Browser (Screen > 1920px)
-		scaleHdmi: 1,            // nur Pi/HDMI (Screen ≤ 1920px), z. B. 1.2
-		adaptiveScale: true,
-		showDebugBorders: true,
-		// Alternativ ohne config.js:
-		// Browser-URL: http://<pi>:8080/?debugBorders=1
-		// oder Konsole: localStorage.setItem("MMM-EventCountdown-debug","1"); location.reload();
-		groupGap: 1,
 
-		// --- Beschriftungen ---
+		size: "large",           // small | medium | large | xlarge
+		unitWidth: 2.8,          // Spaltenbreite (ch)
+		groupGap: 1,             // Abstand zwischen Gruppen (ch)
+		scale: 1,                // optional: globaler Faktor
+		// scaleBrowser: 1,      // optional: nur großer Screen
+		// scaleHdmi: 1.1,       // optional: nur Pi/HDMI
+
+		showDebugBorders: false,
+
 		daysLabel: "DAYS",
 		hoursLabel: "HOURS",
 		minutesLabel: "MINUTES",

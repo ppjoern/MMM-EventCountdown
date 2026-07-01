@@ -157,13 +157,13 @@ let config = {
 | `customInterval` | Countdown-Aktualisierung (ms) | `1000` |
 | `showLight` | Ampel-Grafik anzeigen | `false` |
 | `showColons` | Doppelpunkte zwischen Zahlengruppen (`05:23:45`) | `false` |
-| `size` | Größe: `"small"`, `"medium"`, `"large"`, `"xlarge"` | `"medium"` |
-| `scale` | Fallback-Skalierung für beide Displays | `1` |
-| `scaleBrowser` | Manuelle Skalierung nur für 4K-Browser (Screen > 1920px) | `null` (= `scale`) |
-| `scaleHdmi` | Manuelle Skalierung nur für Pi/HDMI (Screen ≤ 1920px) | `null` (= `scale`) |
-| `adaptiveScale` | Auto-Boost nur für Pi/HDMI | `true` |
-| `unitWidth` | Spaltenbreite in `ch` | `2.5` |
+| `size` | Preset: `"small"`, `"medium"`, `"large"`, `"xlarge"` (CSS `clamp` in vmin) | `"medium"` |
+| `scale` | Manueller Faktor auf die clamp-Größe (Fallback) | `1` |
+| `scaleBrowser` | Optional: Faktor nur für großen Screen (>1920px) | `null` |
+| `scaleHdmi` | Optional: Faktor nur für Pi/HDMI (≤1920px) | `null` |
+| `unitWidth` | Spaltenbreite in `ch` | `2.8` |
 | `groupGap` | Abstand zwischen Gruppen in `ch` | `1` |
+| `showDebugBorders` | Layout-Rahmen zum Feintuning | `false` |
 | `useUrgencyColors` | Original-Farben je nach Restzeit | `true` |
 | `daysLabel` | Label für Tage | `"DAYS"` |
 | `hoursLabel` | Label für Stunden | `"HOURS"` |

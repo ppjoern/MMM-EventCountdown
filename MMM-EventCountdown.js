@@ -25,18 +25,17 @@ Module.register("MMM-EventCountdown", {
 		showLight: false,
 		showColons: false,         // Doppelpunkte zwischen den Zahlengruppen (z. B. 05:23:45)
 		useUrgencyColors: true,    // true = Original-Farben je nach Restzeit | false = immer weiß
-		unitWidth: 2.5,            // Feste Breite jeder Zahlengruppe in "0"-Breiten (ch)
+		unitWidth: 2.8,            // Spaltenbreite in Zeichenbreiten (ch)
 		daysLabel: "DAYS",
 		hoursLabel: "HOURS",
 		minutesLabel: "MINUTES",
 		secondsLabel: "SECONDS",
 		size: "medium",            // "small" | "medium" | "large" | "xlarge"
-		valueSize: null,           // nur bei EINEM festen Display, sonst null
-		scale: 1,                  // Fallback, wenn scaleBrowser/scaleHdmi nicht gesetzt
-		scaleBrowser: null,        // Manuell für 4K-Browser (Screen > 1920px), z. B. 0.9
-		scaleHdmi: null,           // Manuell für Pi/HDMI (Screen ≤ 1920px), z. B. 1.2
-		adaptiveScale: true,       // Auto-Boost nur für Pi/HDMI (kleiner Screen)
-		showDebugBorders: false,   // true | URL ?debugBorders=1 | localStorage MMM-EventCountdown-debug=1
+		valueSize: null,           // Feste Größe – nur bei einem Display, sonst null
+		scale: 1,                  // Manueller Faktor auf clamp-Größe (Fallback)
+		scaleBrowser: null,        // Optional nur großer Screen (>1920px)
+		scaleHdmi: null,           // Optional nur kleiner Screen (Pi/HDMI)
+		showDebugBorders: false,
 		groupGap: 1,
 		noEventText: "NO SCHEDULED EVENT!",
 		runningText: "is running",
@@ -145,14 +144,14 @@ Module.register("MMM-EventCountdown", {
 			this.ensureDebugStyles();
 			wrapper.appendChild(this.createDebugBadge());
 		}
-		wrapper.style.setProperty("--countdown-group-gap", `${Number.isFinite(groupGap) ? groupGap : 1}ch`);
+		wrapper.style.setProperty("--ec-gap", `${Number.isFinite(groupGap) ? groupGap : 1}ch`);
 		const unitWidth = Number(this.config.unitWidth);
-		wrapper.style.setProperty("--countdown-unit-width", `${Number.isFinite(unitWidth) ? unitWidth : 2.5}ch`);
+		wrapper.style.setProperty("--ec-unit-width", `${Number.isFinite(unitWidth) ? unitWidth : 2.8}ch`);
 		if (this.config.valueSize) {
-			wrapper.style.setProperty("--countdown-value-size-base", this.config.valueSize);
-			wrapper.style.setProperty("--countdown-client-scale", "1");
+			wrapper.style.setProperty("--ec-value-fluid", this.config.valueSize);
+			wrapper.style.setProperty("--ec-scale", "1");
 		} else {
-			wrapper.style.setProperty("--countdown-client-scale", String(this.getClientScale()));
+			wrapper.style.setProperty("--ec-scale", String(this.getScale()));
 		}
 
 		if (!this.eventState.hasEvent) {
@@ -308,20 +307,10 @@ Module.register("MMM-EventCountdown", {
 	},
 
 	/**
-	 * Pi/HDMI meldet typisch ≤1080p Screen, 4K-Browser >1920px.
+	 * Manueller Skalierungsfaktor (--ec-scale). Responsive Größe kommt aus CSS clamp().
 	 */
-	isHdmiMirror () {
-		const screenH = window.screen ? window.screen.height : 0;
-		const screenW = window.screen ? window.screen.width : 0;
-		return Math.max(screenH, screenW) <= 1920;
-	},
-
-	/**
-	 * Manueller Faktor pro Display-Typ (scaleBrowser / scaleHdmi).
-	 * Fallback: scale
-	 */
-	getManualScale () {
-		const specific = this.isHdmiMirror() ? this.config.scaleHdmi : this.config.scaleBrowser;
+	getScale () {
+		const specific = this.isSmallScreen() ? this.config.scaleHdmi : this.config.scaleBrowser;
 		const specificNum = Number(specific);
 		if (specific != null && Number.isFinite(specificNum) && specificNum > 0) {
 			return specificNum;
@@ -331,24 +320,10 @@ Module.register("MMM-EventCountdown", {
 		return Number.isFinite(fallback) && fallback > 0 ? fallback : 1;
 	},
 
-	/**
-	 * Skalierung pro Browser-Fenster.
-	 * adaptiveScale boostet nur Pi/HDMI; 4K-Browser nutzen scaleBrowser.
-	 */
-	getClientScale () {
-		let scale = this.getManualScale();
-
-		if (this.config.adaptiveScale === false || !this.isHdmiMirror()) {
-			return scale;
-		}
-
-		const h = window.innerHeight;
-
-		if (h <= 800) scale *= 2.4;
-		else if (h <= 1080) scale *= 2.1;
-		else if (h <= 1200) scale *= 1.75;
-
-		return scale;
+	isSmallScreen () {
+		const screenH = window.screen ? window.screen.height : 0;
+		const screenW = window.screen ? window.screen.width : 0;
+		return Math.max(screenH, screenW) <= 1920;
 	},
 
 	createTrafficLight (timeDiff, isRunning) {

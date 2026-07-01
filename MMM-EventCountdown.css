@@ -1,46 +1,72 @@
 /*
- * MMM-EventCountdown – Layout & Typografie
- * Größe: CSS-Variablen auf .event-countdown (size + client-scale aus JS)
+ * =============================================================================
+ * MMM-EventCountdown – Responsives Layout
+ * =============================================================================
+ *
+ * KONZEPT
+ * -------
+ * 1. Eine Basisgröße: --ec-value (Höhe der Countdown-Ziffern)
+ * 2. clamp(MIN, PREFERRED, MAX) – nur vmin (pro Browser/Viewport)
+ * 3. Titel, Labels, Abstände = festes Verhältnis zu --ec-value
+ * 4. Optional: --ec-scale aus config (manuell, kein Auto-Boost in JS)
+ *
+ * Formel:  clamp(MIN vmin, PREFERRED vmin, MAX vmin) × --ec-scale
+ *
+ * Beispiel „large“ bei 1080p vs 4K (vmin ≈ Viewport-Höhe):
+ *   10vmin → ~108px  |  10vmin → ~216px  (automatisch 2× größer)
+ *
+ * Größen-Presets (nur diese Zeile ändern sich):
+ *   small  → clamp(3vmin,  6vmin, 12vmin)
+ *   medium → clamp(4vmin,  8vmin, 16vmin)
+ *   large  → clamp(5vmin, 10vmin, 20vmin)
+ *   xlarge → clamp(6vmin, 12vmin, 24vmin)
+ *
+ * Feintuning in config.js: size, scale / scaleBrowser / scaleHdmi, unitWidth, groupGap
+ * =============================================================================
  */
 
-/* --- Design-Tokens --- */
+/* --- 1. Tokens (Defaults = medium) --- */
 
 .event-countdown {
-	--countdown-client-scale: 1;
-	--countdown-value-size-base: clamp(7rem, 6.5vmin, 16rem);
-	--countdown-value-size: calc(var(--countdown-value-size-base) * var(--countdown-client-scale));
-	--countdown-title-ratio: 0.286;
-	--countdown-subtitle-ratio: 0.171;
-	--countdown-label-ratio: 0.171;
-	--countdown-title-size: calc(var(--countdown-value-size) * var(--countdown-title-ratio));
-	--countdown-subtitle-size: calc(var(--countdown-value-size) * var(--countdown-subtitle-ratio));
-	--countdown-digit-tight: -0.043em;
-	--countdown-group-gap: 1ch;
-	--countdown-unit-width: 2.5ch;
+	--ec-scale: 1;
+	--ec-value-fluid: clamp(4vmin, 8vmin, 16vmin);
+	--ec-value: calc(var(--ec-value-fluid) * var(--ec-scale));
+
+	--ec-ratio-title: 0.286;
+	--ec-ratio-subtitle: 0.171;
+	--ec-ratio-label: 0.171;
+
+	--ec-title: calc(var(--ec-value) * var(--ec-ratio-title));
+	--ec-subtitle: calc(var(--ec-value) * var(--ec-ratio-subtitle));
+
+	--ec-gap: 1ch;
+	--ec-unit-width: 2.8ch;
+	--ec-digit-spacing: -0.043em;
+
 	box-sizing: border-box;
 	width: 100%;
 	text-align: center;
 }
 
-/* --- Größen-Presets --- */
+/* --- 2. Größen-Presets --- */
 
 .event-countdown--small {
-	--countdown-value-size-base: clamp(4.9rem, 4vmin, 9rem);
+	--ec-value-fluid: clamp(3vmin, 6vmin, 12vmin);
 }
 
 .event-countdown--large {
-	--countdown-value-size-base: clamp(10rem, 8.5vmin, 22rem);
+	--ec-value-fluid: clamp(5vmin, 10vmin, 20vmin);
 }
 
 .event-countdown--xlarge {
-	--countdown-value-size-base: clamp(12rem, 10vmin, 26rem);
+	--ec-value-fluid: clamp(6vmin, 12vmin, 24vmin);
 }
 
-/* --- Kopfzeile --- */
+/* --- 3. Kopfzeile --- */
 
 .event-countdown__title {
 	color: #fff;
-	font-size: var(--countdown-title-size);
+	font-size: var(--ec-title);
 	font-weight: 100;
 	line-height: 1.2;
 	max-width: 100%;
@@ -50,34 +76,34 @@
 }
 
 .event-countdown__subtitle {
-	font-size: var(--countdown-subtitle-size);
+	font-size: var(--ec-subtitle);
 	line-height: 1.2;
 	margin-bottom: 0.15em;
 }
 
-/* --- Timer (Flex-Zeile = frühere Tabellenzeile) --- */
+/* --- 4. Timer-Zeile --- */
 
 .event-countdown__timer {
 	display: flex;
 	flex-flow: row nowrap;
 	align-items: flex-start;
 	justify-content: center;
-	gap: var(--countdown-group-gap);
-	font-size: var(--countdown-value-size);
+	gap: var(--ec-gap);
+	font-size: var(--ec-value);
 	line-height: 1;
 }
 
-/* Spalte = Zelle (Wert + Label) */
+/* --- 5. Spalten (Zelle = Wert + Label) --- */
 
 .event-countdown__column {
 	display: flex;
-	flex: 0 0 var(--countdown-unit-width);
+	flex: 0 0 var(--ec-unit-width);
 	flex-flow: column nowrap;
 	align-items: center;
 	justify-content: flex-start;
-	width: var(--countdown-unit-width);
-	min-width: var(--countdown-unit-width);
-	max-width: var(--countdown-unit-width);
+	width: var(--ec-unit-width);
+	min-width: var(--ec-unit-width);
+	max-width: var(--ec-unit-width);
 	overflow: hidden;
 }
 
@@ -88,7 +114,7 @@
 	font-size: 1em;
 	font-weight: 100;
 	line-height: 1;
-	letter-spacing: var(--countdown-digit-tight);
+	letter-spacing: var(--ec-digit-spacing);
 	font-variant-numeric: tabular-nums;
 	text-align: center;
 	white-space: nowrap;
@@ -100,7 +126,7 @@
 	width: 100%;
 	max-width: 100%;
 	margin-top: 0.12em;
-	font-size: calc(1em * var(--countdown-label-ratio));
+	font-size: calc(1em * var(--ec-ratio-label));
 	line-height: 1.2;
 	text-align: center;
 	white-space: nowrap;
@@ -115,7 +141,7 @@
 	line-height: 1;
 }
 
-/* --- Ampel --- */
+/* --- 6. Ampel --- */
 
 .event-countdown__light {
 	margin-top: 0.5em;
@@ -123,31 +149,31 @@
 
 .event-countdown__light-img {
 	width: auto;
-	height: calc(var(--countdown-value-size) * 1.2);
+	height: calc(var(--ec-value) * 1.2);
 	max-width: 100%;
-	max-height: 28vmin;
+	max-height: clamp(8vmin, 18vmin, 28vmin);
 	object-fit: contain;
 }
 
-/* --- Debug: outline (verändert Layout nicht) --- */
+/* --- 7. Debug (outline = kein Layout-Shift) --- */
 
 .event-countdown--debug .event-countdown__column {
-	outline: 3px solid #ff2222;
+	outline: 3px solid #f22;
 	outline-offset: 1px;
 	background: rgba(255, 0, 0, 0.1);
 }
 
 .event-countdown--debug .event-countdown__value {
-	outline: 2px solid #33ccff;
+	outline: 2px solid #3cf;
 	background: rgba(51, 204, 255, 0.1);
 }
 
 .event-countdown--debug .event-countdown__label {
-	outline: 2px solid #33ff66;
+	outline: 2px solid #3f6;
 	background: rgba(51, 255, 102, 0.1);
 }
 
 .event-countdown--debug .event-countdown__timer {
-	outline: 3px solid #ff9900;
+	outline: 3px solid #f90;
 	outline-offset: 2px;
 }
