@@ -174,18 +174,29 @@ let config = {
 | `startsInText` | Text vor Event-Start | `"starts in"` |
 | `calendars[].fetchTimeout` | Timeout pro Kalender-Abruf (ms) | `30000` |
 
+### Responsive Größe (clamp)
+
+Die Schriftgröße kommt aus **CSS `clamp(vmin)`** – jeder Browser skaliert automatisch mit seinem Viewport:
+
+| Preset | Formel |
+|--------|--------|
+| small | `clamp(4vmin, 8vmin, 15vmin)` |
+| medium | `clamp(5vmin, 11vmin, 20vmin)` |
+| large | `clamp(6vmin, 13vmin, 26vmin)` |
+| xlarge | `clamp(8vmin, 17vmin, 34vmin)` |
+
+Kein JavaScript-Auto-Boost mehr. Optional nur manuell: `scale`, `scaleBrowser`, `scaleHdmi`.
+
 ### Gemischte Displays (4K-Browser + HDMI-Spiegel)
 
-Eine `config.js` für alle Clients. Das Modul erkennt pro Browser den Display-Typ und wendet die passende Skalierung an:
+Eine `config.js` für alle Clients:
 
 ```js
 size: "large",
-adaptiveScale: true,   // Auto-Boost nur am HDMI-Spiegel
-scaleBrowser: 1,       // Feintuning 4K-Browser (z. B. 0.9 wenn zu groß)
-scaleHdmi: 1.2,        // Feintuning Pi/HDMI (z. B. 1.2 wenn noch zu klein)
+// optional Feintuning:
+// scaleBrowser: 0.95,
+// scaleHdmi: 1.1,
 ```
-
-`scaleBrowser` und `scaleHdmi` überschreiben `scale` für den jeweiligen Display-Typ. Werte unter `1` verkleinern, über `1` vergrößern.
 
 ---
 

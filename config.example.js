@@ -17,7 +17,7 @@
 		showColons: false,
 		useUrgencyColors: true,
 
-		size: "large",           // small | medium | large | xlarge
+		size: "xlarge",          // small | medium | large | xlarge
 		unitWidth: 2.8,          // Spaltenbreite (ch)
 		groupGap: 1,             // Abstand zwischen Gruppen (ch)
 		scale: 1,                // optional: globaler Faktor

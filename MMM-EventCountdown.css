@@ -12,14 +12,14 @@
  *
  * Formel:  clamp(MIN vmin, PREFERRED vmin, MAX vmin) × --ec-scale
  *
- * Beispiel „large“ bei 1080p vs 4K (vmin ≈ Viewport-Höhe):
- *   10vmin → ~108px  |  10vmin → ~216px  (automatisch 2× größer)
+ * Beispiel „xlarge“ bei 1080p vs 4K (vmin ≈ Viewport-Höhe):
+ *   17vmin → ~184px  |  17vmin → ~367px
  *
  * Größen-Presets (nur diese Zeile ändern sich):
- *   small  → clamp(3vmin,  6vmin, 12vmin)
- *   medium → clamp(4vmin,  8vmin, 16vmin)
- *   large  → clamp(5vmin, 10vmin, 20vmin)
- *   xlarge → clamp(6vmin, 12vmin, 24vmin)
+ *   small  → clamp(4vmin,  8vmin, 15vmin)
+ *   medium → clamp(5vmin, 11vmin, 20vmin)
+ *   large  → clamp(6vmin, 13vmin, 26vmin)
+ *   xlarge → clamp(8vmin, 17vmin, 34vmin)
  *
  * Feintuning in config.js: size, scale / scaleBrowser / scaleHdmi, unitWidth, groupGap
  * =============================================================================
@@ -29,7 +29,7 @@
 
 .event-countdown {
 	--ec-scale: 1;
-	--ec-value-fluid: clamp(4vmin, 8vmin, 16vmin);
+	--ec-value-fluid: clamp(5vmin, 11vmin, 20vmin);
 	--ec-value: calc(var(--ec-value-fluid) * var(--ec-scale));
 
 	--ec-ratio-title: 0.286;
@@ -51,15 +51,15 @@
 /* --- 2. Größen-Presets --- */
 
 .event-countdown--small {
-	--ec-value-fluid: clamp(3vmin, 6vmin, 12vmin);
+	--ec-value-fluid: clamp(4vmin, 8vmin, 15vmin);
 }
 
 .event-countdown--large {
-	--ec-value-fluid: clamp(5vmin, 10vmin, 20vmin);
+	--ec-value-fluid: clamp(6vmin, 13vmin, 26vmin);
 }
 
 .event-countdown--xlarge {
-	--ec-value-fluid: clamp(6vmin, 12vmin, 24vmin);
+	--ec-value-fluid: clamp(8vmin, 17vmin, 34vmin);
 }
 
 /* --- 3. Kopfzeile --- */
