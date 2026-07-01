@@ -36,7 +36,7 @@ Module.register("MMM-EventCountdown", {
 		scaleBrowser: null,        // Manuell für 4K-Browser (Screen > 1920px), z. B. 0.9
 		scaleHdmi: null,           // Manuell für Pi/HDMI (Screen ≤ 1920px), z. B. 1.2
 		adaptiveScale: true,       // Auto-Boost nur für Pi/HDMI (kleiner Screen)
-		showDebugBorders: false,   // true = Rahmen um alle Layout-Zellen (zum Feintuning)
+		showDebugBorders: false,   // true = dicke Rahmen um alle Layout-Zellen
 		groupGap: 1,
 		noEventText: "NO SCHEDULED EVENT!",
 		runningText: "is running",
@@ -139,8 +139,9 @@ Module.register("MMM-EventCountdown", {
 		const size = this.config.size || "medium";
 		const groupGap = Number(this.config.groupGap);
 		wrapper.className = `event-countdown event-countdown--${size}`;
-		if (this.config.showDebugBorders) {
+		if (this.isDebugBorders()) {
 			wrapper.classList.add("event-countdown--debug");
+			this.applyDebugBorder(wrapper, "#ffff00", 4);
 		}
 		wrapper.style.setProperty("--countdown-group-gap", `${Number.isFinite(groupGap) ? groupGap : 1}ch`);
 		const unitWidth = Number(this.config.unitWidth);
@@ -153,7 +154,9 @@ Module.register("MMM-EventCountdown", {
 		}
 
 		if (!this.eventState.hasEvent) {
-			wrapper.appendChild(this.el("div", "event-countdown__title light thin", this.config.noEventText));
+			const title = this.el("div", "event-countdown__title light thin", this.config.noEventText);
+			this.applyDebugBorder(title, "#ff66ff");
+			wrapper.appendChild(title);
 			return wrapper;
 		}
 
@@ -164,9 +167,14 @@ Module.register("MMM-EventCountdown", {
 			: this.eventState.startDate - now;
 		const color = this.getCountdownColor(timeDiff, isRunning);
 
-		wrapper.appendChild(this.el("div", "event-countdown__title light thin", (this.eventState.title || "").toUpperCase()));
-		wrapper.appendChild(this.el("div", "event-countdown__subtitle light dimmed",
-			isRunning ? this.config.runningText : this.config.startsInText));
+		const titleEl = this.el("div", "event-countdown__title light thin", (this.eventState.title || "").toUpperCase());
+		this.applyDebugBorder(titleEl, "#ff66ff");
+		wrapper.appendChild(titleEl);
+
+		const subtitleEl = this.el("div", "event-countdown__subtitle light dimmed",
+			isRunning ? this.config.runningText : this.config.startsInText);
+		this.applyDebugBorder(subtitleEl, "#cc66ff");
+		wrapper.appendChild(subtitleEl);
 
 		const diffDaysNum = Math.floor(timeDiff / 86400);
 		const pad = (n) => String(n).padStart(2, "0");
@@ -187,28 +195,37 @@ Module.register("MMM-EventCountdown", {
 
 		const timer = document.createElement("div");
 		timer.className = "event-countdown__timer";
+		this.applyDebugBorder(timer, "#ff9900");
 
 		for (let i = 0; i < 3; i++) {
 			if (i > 0 && this.config.showColons) {
 				const colon = this.el("span", "event-countdown__colon thin", ":");
 				colon.style.color = color;
+				this.applyDebugBorder(colon, "#ffffff");
 				timer.appendChild(colon);
 			}
 
 			const column = document.createElement("div");
 			column.className = "event-countdown__column";
+			this.applyDebugBorder(column, "#ff3333");
 
 			const value = this.el("span", "event-countdown__value thin", values[i]);
 			value.style.color = color;
+			this.applyDebugBorder(value, "#33ccff");
 			column.appendChild(value);
-			column.appendChild(this.el("span", "event-countdown__label light dimmed", labels[i]));
+
+			const label = this.el("span", "event-countdown__label light dimmed", labels[i]);
+			this.applyDebugBorder(label, "#33ff66");
+			column.appendChild(label);
 			timer.appendChild(column);
 		}
 
 		wrapper.appendChild(timer);
 
 		if (this.config.showLight) {
-			wrapper.appendChild(this.createTrafficLight(timeDiff, isRunning));
+			const light = this.createTrafficLight(timeDiff, isRunning);
+			this.applyDebugBorder(light, "#ffcc00");
+			wrapper.appendChild(light);
 		}
 
 		return wrapper;
@@ -219,6 +236,23 @@ Module.register("MMM-EventCountdown", {
 		if (className) node.className = className;
 		if (text !== undefined && text !== null) node.textContent = text;
 		return node;
+	},
+
+	isDebugBorders () {
+		return this.config.showDebugBorders === true || this.config.showDebugBorders === "true";
+	},
+
+	/**
+	 * Inline-Rahmen – überlebt MagicMirror-Global-CSS (outline auf span funktioniert oft nicht).
+	 */
+	applyDebugBorder (node, color, widthPx = 3) {
+		if (!this.isDebugBorders() || !node || !node.style) return;
+		node.style.setProperty("border", `${widthPx}px solid ${color}`, "important");
+		node.style.setProperty("box-sizing", "border-box", "important");
+		if (node.tagName === "SPAN") {
+			node.style.setProperty("display", "inline-block", "important");
+			node.style.setProperty("min-width", "1ch", "important");
+		}
 	},
 
 	/**

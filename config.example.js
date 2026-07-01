@@ -44,7 +44,7 @@
 		scaleBrowser: 1,         // nur 4K-Browser (Screen > 1920px)
 		scaleHdmi: 1,            // nur Pi/HDMI (Screen ≤ 1920px), z. B. 1.2
 		adaptiveScale: true,
-		showDebugBorders: false, // true = rote Rahmen um Spalten/Werte/Labels
+		showDebugBorders: true,  // true = dicke farbige Rahmen (zum Layout-Test)
 		groupGap: 1,
 
 		// --- Beschriftungen ---

@@ -17,7 +17,6 @@
 	--countdown-digit-tight: -0.043em;
 	--countdown-group-gap: 1ch;
 	--countdown-unit-width: 2.5ch;
-	--countdown-debug-border: 1px dashed rgba(255, 80, 80, 0.85);
 	box-sizing: border-box;
 	width: 100%;
 	text-align: center;
@@ -125,33 +124,48 @@
 	object-fit: contain;
 }
 
-/* --- Debug: Rahmen um alle „Zellen“ (showDebugBorders: true) --- */
+/* --- Debug: dicke Rahmen (zusätzlich zu Inline-Styles aus JS) --- */
 
-.event-countdown--debug {
-	outline: var(--countdown-debug-border);
-	outline-offset: 4px;
-}
-
-.event-countdown--debug .event-countdown__title,
-.event-countdown--debug .event-countdown__subtitle,
-.event-countdown--debug .event-countdown__timer,
 .event-countdown--debug .event-countdown__column,
 .event-countdown--debug .event-countdown__value,
 .event-countdown--debug .event-countdown__label,
-.event-countdown--debug .event-countdown__colon,
-.event-countdown--debug .event-countdown__light {
-	outline: var(--countdown-debug-border) !important;
-	outline-offset: 1px;
+.event-countdown--debug .event-countdown__timer,
+.event-countdown--debug .event-countdown__title,
+.event-countdown--debug .event-countdown__subtitle,
+.event-countdown--debug .event-countdown__colon {
+	border: 3px solid #ff3333 !important;
+	box-sizing: border-box !important;
 }
 
-.event-countdown--debug .event-countdown__column {
-	background: rgba(255, 80, 80, 0.06);
+.event-countdown--debug .event-countdown__value,
+.event-countdown--debug .event-countdown__label,
+.event-countdown--debug .event-countdown__colon {
+	display: inline-block !important;
 }
 
 .event-countdown--debug .event-countdown__value {
-	background: rgba(80, 180, 255, 0.08);
+	border-color: #33ccff !important;
+	background: rgba(51, 204, 255, 0.12) !important;
 }
 
 .event-countdown--debug .event-countdown__label {
-	background: rgba(80, 255, 120, 0.08);
+	border-color: #33ff66 !important;
+	background: rgba(51, 255, 102, 0.12) !important;
+}
+
+.event-countdown--debug .event-countdown__column {
+	border-color: #ff3333 !important;
+	background: rgba(255, 51, 51, 0.1) !important;
+}
+
+.event-countdown--debug .event-countdown__timer {
+	border-color: #ff9900 !important;
+}
+
+.event-countdown--debug .event-countdown__title {
+	border-color: #ff66ff !important;
+}
+
+.event-countdown--debug .event-countdown__subtitle {
+	border-color: #cc66ff !important;
 }
