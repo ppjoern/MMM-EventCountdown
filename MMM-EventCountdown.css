@@ -1,22 +1,29 @@
 /*
- * MMM-EventCountdown – Responsives Layout
- * Pro Browser: vmin + adaptiveScale für HDMI-Spiegel (1080p auf 4K-TV)
+ * MMM-EventCountdown – Layout & Typografie
+ * Größe: CSS-Variablen auf .event-countdown (size + client-scale aus JS)
  */
+
+/* --- Design-Tokens --- */
 
 .event-countdown {
 	--countdown-client-scale: 1;
 	--countdown-value-size-base: clamp(7rem, 6.5vmin, 16rem);
 	--countdown-value-size: calc(var(--countdown-value-size-base) * var(--countdown-client-scale));
-	--countdown-title-size: calc(var(--countdown-value-size) * 0.286);
-	--countdown-subtitle-size: calc(var(--countdown-value-size) * 0.171);
+	--countdown-title-ratio: 0.286;
+	--countdown-subtitle-ratio: 0.171;
 	--countdown-label-ratio: 0.171;
+	--countdown-title-size: calc(var(--countdown-value-size) * var(--countdown-title-ratio));
+	--countdown-subtitle-size: calc(var(--countdown-value-size) * var(--countdown-subtitle-ratio));
 	--countdown-digit-tight: -0.043em;
 	--countdown-group-gap: 1ch;
 	--countdown-unit-width: 2.5ch;
+	--countdown-debug-border: 1px dashed rgba(255, 80, 80, 0.85);
 	box-sizing: border-box;
 	width: 100%;
 	text-align: center;
 }
+
+/* --- Größen-Presets --- */
 
 .event-countdown--small {
 	--countdown-value-size-base: clamp(4.9rem, 4vmin, 9rem);
@@ -30,15 +37,17 @@
 	--countdown-value-size-base: clamp(12rem, 10vmin, 26rem);
 }
 
+/* --- Kopfzeile --- */
+
 .event-countdown__title {
-	color: #ffffff;
+	color: #fff;
 	font-size: var(--countdown-title-size);
 	font-weight: 100;
 	line-height: 1.2;
+	max-width: 100%;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	max-width: 100%;
 }
 
 .event-countdown__subtitle {
@@ -47,23 +56,26 @@
 	margin-bottom: 0.15em;
 }
 
+/* --- Timer (Flex-Zeile = frühere Tabellenzeile) --- */
+
 .event-countdown__timer {
 	display: flex;
-	flex-direction: row;
-	justify-content: center;
+	flex-flow: row nowrap;
 	align-items: flex-start;
-	flex-wrap: nowrap;
-	font-size: var(--countdown-value-size);
+	justify-content: center;
 	gap: var(--countdown-group-gap);
+	font-size: var(--countdown-value-size);
 	line-height: 1;
 }
 
+/* Spalte = Zelle (Wert + Label) */
+
 .event-countdown__column {
 	display: flex;
-	flex-direction: column;
+	flex: 0 0 var(--countdown-unit-width);
+	flex-flow: column nowrap;
 	align-items: center;
 	justify-content: flex-start;
-	flex: 0 0 var(--countdown-unit-width);
 	width: var(--countdown-unit-width);
 	min-width: var(--countdown-unit-width);
 	max-width: var(--countdown-unit-width);
@@ -71,42 +83,75 @@
 }
 
 .event-countdown__value {
+	width: 100%;
 	font-size: 1em;
 	font-weight: 100;
 	line-height: 1;
 	letter-spacing: var(--countdown-digit-tight);
 	font-variant-numeric: tabular-nums;
-	white-space: nowrap;
-	width: 100%;
 	text-align: center;
+	white-space: nowrap;
 }
 
 .event-countdown__label {
+	width: 100%;
+	margin-top: 0.12em;
 	font-size: calc(1em * var(--countdown-label-ratio));
 	line-height: 1.2;
-	margin-top: 0.12em;
 	text-align: center;
 	white-space: nowrap;
-	width: 100%;
 	overflow: visible;
 }
 
 .event-countdown__colon {
+	flex: 0 0 auto;
+	align-self: flex-start;
 	font-size: 1em;
 	font-weight: 100;
 	line-height: 1;
-	flex: 0 0 auto;
-	align-self: flex-start;
 }
+
+/* --- Ampel --- */
 
 .event-countdown__light {
 	margin-top: 0.5em;
 }
 
 .event-countdown__light-img {
-	height: calc(var(--countdown-value-size) * 1.2);
-	max-height: 28vmin;
 	width: auto;
+	height: calc(var(--countdown-value-size) * 1.2);
 	max-width: 100%;
+	max-height: 28vmin;
 	object-fit: contain;
+}
+
+/* --- Debug: Rahmen um alle „Zellen“ (showDebugBorders: true) --- */
+
+.event-countdown--debug {
+	outline: var(--countdown-debug-border);
+	outline-offset: 4px;
+}
+
+.event-countdown--debug .event-countdown__title,
+.event-countdown--debug .event-countdown__subtitle,
+.event-countdown--debug .event-countdown__timer,
+.event-countdown--debug .event-countdown__column,
+.event-countdown--debug .event-countdown__value,
+.event-countdown--debug .event-countdown__label,
+.event-countdown--debug .event-countdown__colon,
+.event-countdown--debug .event-countdown__light {
+	outline: var(--countdown-debug-border) !important;
+	outline-offset: 1px;
+}
+
+.event-countdown--debug .event-countdown__column {
+	background: rgba(255, 80, 80, 0.06);
+}
+
+.event-countdown--debug .event-countdown__value {
+	background: rgba(80, 180, 255, 0.08);
+}
+
+.event-countdown--debug .event-countdown__label {
+	background: rgba(80, 255, 120, 0.08);
 }

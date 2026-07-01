@@ -36,6 +36,7 @@ Module.register("MMM-EventCountdown", {
 		scaleBrowser: null,        // Manuell für 4K-Browser (Screen > 1920px), z. B. 0.9
 		scaleHdmi: null,           // Manuell für Pi/HDMI (Screen ≤ 1920px), z. B. 1.2
 		adaptiveScale: true,       // Auto-Boost nur für Pi/HDMI (kleiner Screen)
+		showDebugBorders: false,   // true = Rahmen um alle Layout-Zellen (zum Feintuning)
 		groupGap: 1,
 		noEventText: "NO SCHEDULED EVENT!",
 		runningText: "is running",
@@ -138,6 +139,9 @@ Module.register("MMM-EventCountdown", {
 		const size = this.config.size || "medium";
 		const groupGap = Number(this.config.groupGap);
 		wrapper.className = `event-countdown event-countdown--${size}`;
+		if (this.config.showDebugBorders) {
+			wrapper.classList.add("event-countdown--debug");
+		}
 		wrapper.style.setProperty("--countdown-group-gap", `${Number.isFinite(groupGap) ? groupGap : 1}ch`);
 		const unitWidth = Number(this.config.unitWidth);
 		wrapper.style.setProperty("--countdown-unit-width", `${Number.isFinite(unitWidth) ? unitWidth : 2.5}ch`);

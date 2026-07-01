@@ -43,7 +43,8 @@
 		scale: 1,                // Fallback für beide Displays
 		scaleBrowser: 1,         // nur 4K-Browser (Screen > 1920px)
 		scaleHdmi: 1,            // nur Pi/HDMI (Screen ≤ 1920px), z. B. 1.2
-		adaptiveScale: true,     // Auto-Boost nur für HDMI
+		adaptiveScale: true,
+		showDebugBorders: false, // true = rote Rahmen um Spalten/Werte/Labels
 		groupGap: 1,
 
 		// --- Beschriftungen ---
