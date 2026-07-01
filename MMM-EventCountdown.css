@@ -1,61 +1,202 @@
 /*
+ * =============================================================================
+ * MMM-EventCountdown – Responsives Layout
+ * =============================================================================
  *
- * MMM-EventCountdown
+ * KONZEPT
+ * -------
+ * 1. Eine Basisgröße: --ec-value (Höhe der Countdown-Ziffern)
+ * 2. clamp(MIN, PREFERRED, MAX) – nur vmin (pro Browser/Viewport)
+ * 3. Titel, Labels, Abstände = festes Verhältnis zu --ec-value
+ * 4. Optional: --ec-scale aus config (manuell, kein Auto-Boost in JS)
  *
-*/
+ * Formel:  clamp(MIN vmin, PREFERRED vmin, MAX vmin) × --ec-scale
+ *
+ * Beispiel „xlarge“ bei 1080p vs 4K (vmin ≈ Viewport-Höhe):
+ *   17vmin → ~184px  |  17vmin → ~367px
+ *
+ * Größen-Presets (nur diese Zeile ändern sich):
+ *   small  → clamp(4vmin,  8vmin, 15vmin)
+ *   medium → clamp(5vmin, 11vmin, 20vmin)
+ *   large  → clamp(6vmin, 13vmin, 26vmin)
+ *   xlarge → clamp(8vmin, 17vmin, 34vmin)
+ *
+ * Feintuning in config.js: size, scale / scaleBrowser / scaleHdmi, unitWidth, groupGap
+ * =============================================================================
+ */
 
-.tableCountdown{
-    border: 0px solid green;
-    margin-left:0px; 
-    margin-right: 0px;
-    border-spacing: 0px;
-    border-collapse: separate;
+/* --- 1. Tokens (Defaults = medium) --- */
+
+.event-countdown {
+	--ec-scale: 1;
+	--ec-value-fluid: clamp(5vmin, 11vmin, 20vmin);
+	--ec-value: calc(var(--ec-value-fluid) * var(--ec-scale));
+
+	--ec-ratio-title: 0.286;
+	--ec-ratio-subtitle: 0.171;
+	--ec-ratio-label: 0.171;
+
+	--ec-title: calc(var(--ec-value) * var(--ec-ratio-title));
+	--ec-subtitle: calc(var(--ec-value) * var(--ec-ratio-subtitle));
+
+	--ec-gap: 0.5ch;
+	--ec-unit-width: 2.8ch;
+	--ec-digit-spacing: -0.043em;
+
+	box-sizing: border-box;
+	width: 100%;
+	text-align: center;
 }
 
-.tableHead{
-    border: 0px solid green;
-    color: #ffffff; /*Weiss*/ 
-    border-collapse: collapse;
-    border-spacing: 0px;
-    font-size: 2rem;
-    text-align: center;
+/* --- 2. Größen-Presets --- */
+
+.event-countdown--small {
+	--ec-value-fluid: clamp(4vmin, 8vmin, 15vmin);
 }
 
-.tableTime{
-    border: 0px solid green;
-    border-collapse: collapse;
-    border-spacing: 0px;
-    color: #ffffff; /* white */
-    font-size: 7.0rem;
-    line-height: 1em;
-    letter-spacing: -3px;
-    width: 9rem;
+.event-countdown--large {
+	--ec-value-fluid: clamp(6vmin, 13vmin, 26vmin);
 }
 
-.tableFooter{
-    border: 0px solid red;
-    border-collapse: collapse;
-    font-size: 1.2rem;
-    align-content: center;
-    text-align: center;
-    /*height: 2em;*/
-    height: 500%;
-    text-align: center;
-    vertical-align: top;
+.event-countdown--xlarge {
+	--ec-value-fluid: clamp(8vmin, 17vmin, 34vmin);
 }
 
-.tableFooterlow{
-    border: 0px solid red;
-    border-collapse: collapse;
-    font-size: 1.2rem;
-    align-content: center;
-    text-align: center;
-    line-height: 1em;
-    /*line-height: 500%;*/
-    text-align: center;
-    vertical-align: middle;
+/* --- 3. Kopfzeile --- */
+
+.event-countdown__title {
+	color: #fff;
+	font-size: var(--ec-title);
+	font-weight: 100;
+	line-height: 1.2;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
-.countdown1{
-    .color: #327da8; /*graublau*/
+.event-countdown__subtitle {
+	color: #fff;
+	font-size: var(--ec-subtitle);
+	line-height: 1.2;
+	margin-bottom: 0.15em;
+}
+
+/* --- 4. Timer-Zeile --- */
+
+.event-countdown__timer {
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: flex-start;
+	justify-content: center;
+	gap: var(--ec-gap);
+	font-size: var(--ec-value);
+	line-height: 1;
+}
+
+/* Mit Doppelpunkten: kein Flex-Gap (sonst doppelt), Abstand nur in .event-countdown__sep */
+
+.event-countdown__timer--colons {
+	gap: 0;
+}
+
+.event-countdown__sep {
+	display: flex;
+	flex: 0 0 var(--ec-gap);
+	align-items: flex-start;
+	align-self: flex-start;
+	justify-content: center;
+	width: var(--ec-gap);
+	min-width: var(--ec-gap);
+	overflow: visible;
+}
+
+/* --- 5. Spalten (Zelle = Wert + Label) --- */
+
+.event-countdown__column {
+	display: flex;
+	flex: 0 0 var(--ec-unit-width);
+	flex-flow: column nowrap;
+	align-items: center;
+	justify-content: flex-start;
+	width: var(--ec-unit-width);
+	min-width: var(--ec-unit-width);
+	max-width: var(--ec-unit-width);
+	overflow: hidden;
+}
+
+.event-countdown__value {
+	display: block;
+	width: 100%;
+	max-width: 100%;
+	font-size: 1em;
+	font-weight: 100;
+	line-height: 1;
+	letter-spacing: var(--ec-digit-spacing);
+	font-variant-numeric: tabular-nums;
+	text-align: center;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.event-countdown__label {
+	display: block;
+	width: 100%;
+	max-width: 100%;
+	margin-top: 0.12em;
+	font-size: calc(1em * var(--ec-ratio-label));
+	line-height: 1.2;
+	text-align: center;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.event-countdown__colon {
+	flex: 0 0 auto;
+	align-self: flex-start;
+	font-size: 1em;
+	font-weight: 100;
+	line-height: 1;
+}
+
+/* --- 6. Ampel --- */
+
+.event-countdown__light {
+	margin-top: 0.5em;
+}
+
+.event-countdown__light-img {
+	width: auto;
+	height: calc(var(--ec-value) * 1.2);
+	max-width: 100%;
+	max-height: clamp(8vmin, 18vmin, 28vmin);
+	object-fit: contain;
+}
+
+/* --- 7. Debug (outline = kein Layout-Shift) --- */
+
+.event-countdown--debug .event-countdown__column {
+	outline: 3px solid #f22;
+	outline-offset: 1px;
+	background: rgba(255, 0, 0, 0.1);
+}
+
+.event-countdown--debug .event-countdown__value {
+	outline: 2px solid #3cf;
+	background: rgba(51, 204, 255, 0.1);
+}
+
+.event-countdown--debug .event-countdown__label {
+	outline: 2px solid #3f6;
+	background: rgba(51, 255, 102, 0.1);
+}
+
+.event-countdown--debug .event-countdown__sep {
+	outline: 2px solid #fff;
+	background: rgba(255, 255, 255, 0.08);
+}
+
+.event-countdown--debug .event-countdown__timer {
+	outline: 3px solid #f90;
+	outline-offset: 2px;
 }

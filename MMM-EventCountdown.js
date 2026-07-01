@@ -1,262 +1,380 @@
-	Module.register("MMM-EventCountdown",{
-	// Default module config.
+/* global Module, Log, moment */
+
+/**
+ * MMM-EventCountdown – Countdown zum nächsten Kalender-Event.
+ *
+ * Kalender-URLs gehören NICHT hierher, sondern in:
+ *   ~/MagicMirror/config/config.env  →  SECRET_CAL_URL_1="https://..."
+ *   ~/MagicMirror/config/config.js   →  calendars: [{ url: "${SECRET_CAL_URL_1}" }]
+ *
+ * Siehe README.md für die vollständige Anleitung.
+ */
+Module.register("MMM-EventCountdown", {
+
 	defaults: {
-		event: "Year 2030",
-		date: "2031-01-01",
-		customInterval: 1000,
-		daysLabel: 'DAYS',
-		hoursLabel: 'HOURS',
-		minutesLabel: 'MINUTES',
-		secondsLabel: 'SECONDS',
-		startDate: 1893452400 ,
-		endDate: 1924988400,
+		// --- Kalender-Konfiguration (URLs siehe README!) ---
+		calendars: [
+			// Beispiel – echte URL in config.env als SECRET_CAL_URL_1 hinterlegen:
+			// { name: "Mein Kalender", url: "${SECRET_CAL_URL_1}" }
+		],
+		allowedHosts: [],          // Zusätzliche erlaubte Domains für SSRF-Whitelist
+		fetchInterval: 60 * 1000,  // Wie oft der Server Kalender neu lädt (ms)
+		customInterval: 1000,      // Wie oft der Countdown aktualisiert wird (ms)
+
+		// --- Anzeige ---
 		showLight: false,
+		showColons: false,         // Doppelpunkte zwischen den Zahlengruppen (z. B. 05:23:45)
+		useUrgencyColors: true,    // true = Original-Farben je nach Restzeit | false = immer weiß
+		unitWidth: 2.8,            // Spaltenbreite in Zeichenbreiten (ch)
+		daysLabel: "DAYS",
+		hoursLabel: "HOURS",
+		minutesLabel: "MINUTES",
+		secondsLabel: "SECONDS",
+		size: "medium",            // "small" | "medium" | "large" | "xlarge"
+		valueSize: null,           // Feste Größe – nur bei einem Display, sonst null
+		scale: 1,                  // Manueller Faktor auf clamp-Größe (Fallback)
+		scaleBrowser: null,        // Optional nur großer Screen (>1920px)
+		scaleHdmi: null,           // Optional nur kleiner Screen (Pi/HDMI)
+		showDebugBorders: false,
+		groupGap: 0.5,
+		noEventText: "NO SCHEDULED EVENT!",
+		runningText: "is running",
+		startsInText: "starts in",
+
+		// --- Fallback wenn kein Event gefunden ---
+		event: "Kein Event",
+		date: "2031-01-01",
+		startDate: 1893452400,
+		endDate: 1924988400,
+	},
+
+	// Event-State getrennt von this.config halten (Sicherheit: keine Daten in /config)
+	eventState: {
+		title: null,
+		startDate: null,
+		endDate: null,
 		isRunning: false,
+		hasEvent: false,
 	},
 
-	// set update interval
-	start: function() {
-		var self = this;
-		self.getEvents();
-		setInterval(function() {
-			self.getEvents();
-			self.updateDom(); // no speed defined, so it updates instantly.
-		}, 
-		this.config.customInterval); 
+	updateTimer: null,
+	fetchTimer: null,
+
+	start () {
+		this.requestEvents();
+		this.fetchTimer = setInterval(() => this.requestEvents(), this.config.fetchInterval);
+		this.updateTimer = setInterval(() => this.updateDom(), this.config.customInterval);
 	},
 
-	updateDate: function(events) {
-		//Log.info(events);
-		var now = moment().format("X") //(the number of seconds since the Unix Epoch 01.01.1970 0:00:00)
-		events.sort((a, b) => a.startDate.localeCompare(b.startDate))
-		if (typeof events[0] !== 'undefined') { 
-				this.config.event 		= events[0].title;		//title of the next event
-				this.config.startDate 	= events[0].startDate;	//start of next event
-				this.config.endDate 	= events[0].endDate;	//end if next event
-				//Log.info('Event Startdate :' + events[0].startDate);
-				//Log.info('Event Enddate :' + events[0].endDate);
-
-				if ((now >= events[0].startDate) && (now <= events[0].endDate)) { //event is running
-						this.config.isRunning = true;
-						//Log.info('isRunning:' + this.config.isRunning);
-				} else if (now <= events[0].startDate) { //event not started
-						this.config.isRunning = false;
-						//Log.info('isRunning:' + this.config.isRunning);
-				}
-
-			} else if (typeof events[0] !== 'undefined') {
-				this.config.event 		= events[0].title;
-				this.config.startDate 	= events[0].startDateJ;
-		};	
-		this.updateDom(); // no speed defined, so it updates instantly.
+	stop () {
+		if (this.fetchTimer) clearInterval(this.fetchTimer);
+		if (this.updateTimer) clearInterval(this.updateTimer);
 	},
 
-	getEvents: function() {
-		var self = this;
-		var now = moment().format("X");
-		var filterFn = (event) => {
-			// Do not consider all-day events. Only consider events that start in the future or are currently on.
-			if ((event.isFullday !== true) && (event.startDate > now) || (event.endDate > now)) return true
-			};
-		var callbackFn = (events) => {
-			this.updateDate(events)
-		};
-
-		this.sendNotification("CALEXT2_EVENT_QUERY", {filter:filterFn, callback:callbackFn})
+	/**
+	 * Fordert Events vom serverseitigen node_helper an.
+	 * Die Kalender-URLs werden mitgeschickt (ggf. maskiert als **SECRET_...**),
+	 * der node_helper löst sie serverseitig über process.env auf.
+	 */
+	requestEvents () {
+		this.sendSocketNotification("FETCH_EVENTS", {
+			calendars: this.config.calendars,
+			allowedHosts: this.config.allowedHosts,
+		});
 	},
 
-	getStyles: function() {
-		return ["MMM-EventCountdown.css"]
+	socketNotificationReceived (notification, payload) {
+		if (notification === "EVENTS") {
+			this.processEvents(payload);
+		}
 	},
 
-	// Update function
-	getDom: function() {
-		var self = this;
-		var isRunning = this.config.isRunning;
-		var eventStart = this.config.startDate;
-		var eventEnd = this.config.endDate;
-		
-		var now = Math.floor(new Date().getTime() / 1000);
-		//Log.info('now <<current Time in Seconds since 1970>> ' + now);
+	/**
+	 * Filtert und wählt das nächste relevante Event aus.
+	 */
+	processEvents (events) {
+		if (!Array.isArray(events) || events.length === 0) {
+			this.eventState.hasEvent = false;
+			this.updateDom();
+			return;
+		}
 
-		//Countdown calculation
-		switch (isRunning){
-			case true:
-				var timeDiff = eventEnd - now;
-				break;
-			case false:
-				var timeDiff = eventStart - now;
-				var duration = eventEnd - eventStart;
-				break;
-		};
-		Log.info('timeDiff: ' + timeDiff);
+		const now = Math.floor(Date.now() / 1000);
 
-		var diffDays 	= Math.floor(timeDiff / (60 * 60 * 24));
-		var diffHours 	= Math.floor(timeDiff % (60 * 60 * 24) / (60 * 60));
-		var diffMinutes = Math.floor(timeDiff % (60 * 60) / 60);
-		var diffSeconds = Math.floor(timeDiff % 60);
+		const filtered = events
+			.filter((event) => {
+				if (event.isFullDay) return false;
+				return event.startDate > now || event.endDate > now;
+			})
+			.sort((a, b) => a.startDate - b.startDate);
 
-		var wrapper = document.createElement("div"); 						//build container for table
+		if (filtered.length === 0) {
+			this.eventState.hasEvent = false;
+			this.updateDom();
+			return;
+		}
 
-		var wrapperTable = document.createElement("tableCountdown"); 		//create table
-			wrapperTable.className = "tableCountdown"; 						//styles for table
+		const next = filtered[0];
+		this.eventState.title = next.title;
+		this.eventState.startDate = next.startDate;
+		this.eventState.endDate = next.endDate;
+		this.eventState.hasEvent = true;
 
-		var headRow = document.createElement("tr"); 						//neue Tabellenzeile
-		var headCell = document.createElement("th"); 						//new Tablehead
-			headCell.className ="light tableHead";							//Formatierungen fuer den Titel mit dem Event
-			headCell.colSpan = "3"; 
+		if (now >= next.startDate && now <= next.endDate) {
+			this.eventState.isRunning = true;
+		} else {
+			this.eventState.isRunning = false;
+		}
 
-		var titleRow = document.createElement("tr"); 						//neue Tabellenzeile
-		var titleCell = document.createElement("td"); 						//neue Variable im Format Tabellendata
-			titleCell.className ="light dimmed tableFooterlow"; 			//Formatierungen fuer 'starts' oder 'is running'
-			titleCell.colSpan = "3";
+		this.updateDom();
+	},
 
-		var currentEvent = this.config.event;
-		currentEvent = currentEvent.toUpperCase();
-		headCell.innerHTML += currentEvent
+	getStyles () {
+		return ["MMM-EventCountdown.css"];
+	},
 
-		switch (isRunning){
-			case true:
-				titleCell.innerHTML += "is running";
-				break;
-			case false:
-				titleCell.innerHTML += "starts in";
-				break;
-			default:
-				titleCell.innerHTML = "No scheduled event!"; //wenn kein Event im Kalender eingetragen ist
-				break;
-		};
+	getDom () {
+		const wrapper = document.createElement("div");
+		const size = this.config.size || "medium";
+		const groupGap = Number(this.config.groupGap);
+		wrapper.className = `event-countdown event-countdown--${size}`;
+		if (this.isDebugBorders()) {
+			wrapper.classList.add("event-countdown--debug");
+			wrapper.setAttribute("data-ec-debug", "1");
+			this.ensureDebugStyles();
+			wrapper.appendChild(this.createDebugBadge());
+		}
+		wrapper.style.setProperty("--ec-gap", `${Number.isFinite(groupGap) ? groupGap : 0.5}ch`);
+		const unitWidth = Number(this.config.unitWidth);
+		wrapper.style.setProperty("--ec-unit-width", `${Number.isFinite(unitWidth) ? unitWidth : 2.8}ch`);
+		if (this.config.valueSize) {
+			wrapper.style.setProperty("--ec-value-fluid", this.config.valueSize);
+			wrapper.style.setProperty("--ec-scale", "1");
+		} else {
+			wrapper.style.setProperty("--ec-scale", String(this.getScale()));
+		}
 
-		headRow.appendChild(headCell);
-		titleRow.appendChild(titleCell);
-		wrapperTable.appendChild(headRow);
-		wrapperTable.appendChild(titleRow);
+		if (!this.eventState.hasEvent) {
+			wrapper.appendChild(this.el("div", "event-countdown__title light thin", this.config.noEventText));
+			return wrapper;
+		}
 
-		var timeRow = document.createElement("tr"); //row for the countdown
+		const isRunning = this.eventState.isRunning;
+		const now = Math.floor(Date.now() / 1000);
+		const timeDiff = isRunning
+			? this.eventState.endDate - now
+			: this.eventState.startDate - now;
+		const color = this.getCountdownColor(timeDiff, isRunning);
 
-		var countdownCell_1 = document.createElement("td"); 
-		var countdownCell_2 = document.createElement("td");
-		var countdownCell_3 = document.createElement("td");
+		wrapper.appendChild(this.el("div", "event-countdown__title light thin", (this.eventState.title || "").toUpperCase()));
+		wrapper.appendChild(this.el("div", "event-countdown__subtitle light thin",
+			isRunning ? this.config.runningText : this.config.startsInText));
 
-		countdownCell_1.className = "tableTime thin";
-		countdownCell_2.className = "tableTime thin";
-		countdownCell_3.className = "tableTime thin";
+		const diffDaysNum = Math.floor(timeDiff / 86400);
+		const pad = (n) => String(n).padStart(2, "0");
 
-		const REMAINING_TIME_1 = 60 * 60 * 24; 	// 24h
-		const REMAINING_TIME_2 = 60 * 60 * 1; 	// 1h
-		const REMAINING_TIME_3 = 60 * 20;		// 20min
-		const REMAINING_TIME_4 = 60 * 5;		// 5min
+		let values;
+		let labels;
+		if (diffDaysNum > 0) {
+			values = [pad(diffDaysNum), pad(Math.floor((timeDiff % 86400) / 3600)), pad(Math.floor((timeDiff % 3600) / 60))];
+			labels = [this.config.daysLabel, this.config.hoursLabel, this.config.minutesLabel];
+		} else {
+			values = [
+				pad(Math.floor((timeDiff % 86400) / 3600)),
+				pad(Math.floor((timeDiff % 3600) / 60)),
+				pad(Math.floor(timeDiff % 60)),
+			];
+			labels = [this.config.hoursLabel, this.config.minutesLabel, this.config.secondsLabel];
+		}
 
-		if ((timeDiff < REMAINING_TIME_1) && (isRunning === false)) { //less than 24h
-			var cellColor = "#00ff00"; //Springgreen
-		};
+		const timer = document.createElement("div");
+		timer.className = "event-countdown__timer";
+		if (this.config.showColons) {
+			timer.classList.add("event-countdown__timer--colons");
+		}
 
-		if ((timeDiff < REMAINING_TIME_2) && (timeDiff > REMAINING_TIME_3) && (isRunning === false)) { //less than 1h and more than 20 minutes
-			var cellColor = "#ffff00";
-		};
+		for (let i = 0; i < 3; i++) {
+			if (i > 0 && this.config.showColons) {
+				const sep = document.createElement("div");
+				sep.className = "event-countdown__sep";
+				const colon = this.el("span", "event-countdown__colon thin", ":");
+				colon.style.color = color;
+				sep.appendChild(colon);
+				timer.appendChild(sep);
+			}
 
-		if ((timeDiff < REMAINING_TIME_3) && (timeDiff > REMAINING_TIME_4) && (isRunning === false)) { //less than 20 minutes more than 5
-			var cellColor = "#ff9966";
-		};
+			const column = document.createElement("div");
+			column.className = "event-countdown__column";
 
-		if (timeDiff <= REMAINING_TIME_4 && (isRunning === false)) { //less than 5 minutes
-			var cellColor = "#ff6600";
-		};
+			const value = this.el("span", "event-countdown__value thin", values[i]);
+			value.style.color = color;
+			column.appendChild(value);
+			column.appendChild(this.el("span", "event-countdown__label light dimmed", labels[i]));
+			timer.appendChild(column);
+		}
 
-		if (isRunning === true) { //if the event is eunning
-			var cellColor = "#ffffff";
-		};
+		wrapper.appendChild(timer);
 
-			countdownCell_1.style.color = cellColor;
-			countdownCell_2.style.color = cellColor;
-			countdownCell_3.style.color = cellColor;
+		if (this.config.showLight) {
+			wrapper.appendChild(this.createTrafficLight(timeDiff, isRunning));
+		}
 
-		if ((diffDays < 10)) { diffDays = "0" + diffDays;}
-		if ((diffHours < 10)) { diffHours = "0" + diffHours;}
-		if ((diffMinutes < 10)) { diffMinutes = "0" + diffMinutes; }
-		if ((diffSeconds < 10)) { diffSeconds = "0" + diffSeconds; }
-
-		if (diffDays > 0) {
-			countdownCell_1.innerHTML = diffDays;
-			countdownCell_2.innerHTML = diffHours;
-			countdownCell_3.innerHTML = diffMinutes;	
-		};
-
-		if (diffDays < 1) {
-			countdownCell_1.innerHTML = diffHours;
-			countdownCell_2.innerHTML = diffMinutes;
-			countdownCell_3.innerHTML = diffSeconds;	
-		};
-		
-		timeRow.appendChild(countdownCell_1);
-		timeRow.appendChild(countdownCell_2);
-		timeRow.appendChild(countdownCell_3);
-		wrapperTable.appendChild(timeRow);
-
-		var labelCell_1 = document.createElement("td");
-		var labelCell_2 = document.createElement("td");
-		var labelCell_3 = document.createElement("td");
-
-		labelCell_1.className = "tableFooter light dimmed";
-		labelCell_2.className = "tableFooter light dimmed";
-		labelCell_3.className = "tableFooter light dimmed";
-
-		if (diffDays > 0) {
-			labelCell_1.innerHTML = this.config.daysLabel + "<p>";
-			labelCell_2.innerHTML = this.config.hoursLabel;	
-			labelCell_3.innerHTML = this.config.minutesLabel;
-		};
-
-		if (diffDays < 1) {
-			labelCell_1.innerHTML = this.config.hoursLabel + "<p>";
-			labelCell_2.innerHTML = this.config.minutesLabel;	
-			labelCell_3.innerHTML = this.config.secondsLabel;
-		};
-
-		wrapperTable.appendChild(labelCell_1);
-		wrapperTable.appendChild(labelCell_2);
-		wrapperTable.appendChild(labelCell_3);
-
-		//traffic light integration
-		var showLight = this.config.showLight;
-
-		if (showLight === true) {
-				//Log.info ("ShowLight true");
-				var remainMinutes = Math.floor(timeDiff / 60); //Remaining Minutes until Event Start
-
-				var lightRow = document.createElement("tr");
-				lightRow.className = "tableTime"; //Formatvorgabe Tabellenzeile
-
-				var lightCell = document.createElement("td");
-				lightCell.className = "tableHead";
-
-				lightCell.colSpan = "3";	//3 Spalten verbinden
-
-				var lightHeight = 85; //height of the traffic light
-				switch(isRunning){
-					case true:
-						//Log.info ('Is Running');
-						if (remainMinutes <= 3) {
-							lightCell.innerHTML = "<img src='modules/MMM-EventCountdown/images/lights_g" + (remainMinutes + 1) + ".png' height=" + lightHeight + "px>";
-							} else {
-							lightCell.innerHTML = "<img src='modules/MMM-EventCountdown/images/lights_g5.png' height=" + lightHeight + "px>";	
-						};
-						break;
-
-					case false:
-						//Log.info ('Is Not Running');
-						//Log.info ("Remaining Minutes " + remainMinutes);
-						if (remainMinutes <= 3) {
-							lightCell.innerHTML = "<img src='modules/MMM-EventCountdown/images/lights_r" + (remainMinutes + 1) + ".png' height=" + lightHeight + "px>";
-							} else {
-							lightCell.innerHTML = "<img src='modules/MMM-EventCountdown/images/lights_r5.png' height=" + lightHeight + "px>";	
-						};
-						break;
-				};	
-		 		lightRow.appendChild(lightCell);
-		 		wrapperTable.appendChild(lightRow);
-		 	};
-		wrapper.appendChild(wrapperTable);
 		return wrapper;
+	},
+
+	el (tag, className, text) {
+		const node = document.createElement(tag);
+		if (className) node.className = className;
+		if (text !== undefined && text !== null) node.textContent = text;
+		return node;
+	},
+
+	isDebugBorders () {
+		try {
+			if (typeof window !== "undefined" && window.location) {
+				if (/[?&]debugBorders=1(?:&|$)/.test(window.location.search)) return true;
+				if (window.localStorage && window.localStorage.getItem("MMM-EventCountdown-debug") === "1") {
+					return true;
+				}
+			}
+		} catch (e) {
+			// localStorage blockiert (Safari privat etc.)
+		}
+
+		const cfg = this.config.showDebugBorders;
+		return cfg === true || cfg === "true" || cfg === 1 || cfg === "1";
+	},
+
+	createDebugBadge () {
+		const badge = document.createElement("div");
+		badge.className = "event-countdown__debug-badge";
+		badge.textContent = "DEBUG RAHMEN AN";
+		badge.setAttribute("aria-hidden", "true");
+		return badge;
+	},
+
+	/**
+	 * Globales <style> ins Dokument – höhere Spezifität als MagicMirror-main.css
+	 */
+	ensureDebugStyles () {
+		const id = "mmm-eventcountdown-debug-style";
+		const existing = document.getElementById(id);
+		if (existing) existing.remove();
+
+		const style = document.createElement("style");
+		style.id = id;
+		// outline statt border → verändert keine Zellbreite (kein Überlappen)
+		style.textContent = `
+			.module.MMM-EventCountdown .event-countdown__debug-badge {
+				display: block !important;
+				margin: 0 auto 8px !important;
+				padding: 6px 12px !important;
+				width: fit-content !important;
+				color: #000 !important;
+				background: #ffff00 !important;
+				outline: 3px solid #ff0000 !important;
+				font-size: 16px !important;
+				font-weight: 700 !important;
+				line-height: 1.2 !important;
+				letter-spacing: 0.05em !important;
+				text-transform: uppercase !important;
+			}
+			.module.MMM-EventCountdown .event-countdown--debug {
+				outline: 4px solid #ffff00 !important;
+				outline-offset: 4px !important;
+			}
+			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__timer {
+				outline: 3px solid #ff9900 !important;
+				outline-offset: 2px !important;
+			}
+			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__column {
+				outline: 3px solid #ff2222 !important;
+				outline-offset: 1px !important;
+				background: rgba(255, 0, 0, 0.12) !important;
+			}
+			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__value {
+				outline: 2px solid #00ccff !important;
+				outline-offset: 0 !important;
+				background: rgba(0, 204, 255, 0.1) !important;
+			}
+			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__label {
+				outline: 2px solid #00ff66 !important;
+				outline-offset: 0 !important;
+				background: rgba(0, 255, 102, 0.1) !important;
+			}
+			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__title {
+				outline: 2px solid #ff66ff !important;
+			}
+			.module.MMM-EventCountdown .event-countdown--debug .event-countdown__subtitle {
+				outline: 2px solid #cc66ff !important;
+			}
+		`;
+		document.head.appendChild(style);
+	},
+
+	/**
+	 * Manueller Skalierungsfaktor (--ec-scale). Responsive Größe kommt aus CSS clamp().
+	 */
+	getScale () {
+		const specific = this.isSmallScreen() ? this.config.scaleHdmi : this.config.scaleBrowser;
+		const specificNum = Number(specific);
+		if (specific != null && Number.isFinite(specificNum) && specificNum > 0) {
+			return specificNum;
+		}
+
+		const fallback = Number(this.config.scale);
+		return Number.isFinite(fallback) && fallback > 0 ? fallback : 1;
+	},
+
+	isSmallScreen () {
+		const screenH = window.screen ? window.screen.height : 0;
+		const screenW = window.screen ? window.screen.width : 0;
+		return Math.max(screenH, screenW) <= 1920;
+	},
+
+	createTrafficLight (timeDiff, isRunning) {
+		const remainMinutes = Math.max(0, Math.floor(timeDiff / 60));
+		const lightIndex = Math.min(5, Math.max(1, remainMinutes <= 3 ? remainMinutes + 1 : 5));
+		const prefix = isRunning ? "lights_g" : "lights_r";
+
+		const wrap = document.createElement("div");
+		wrap.className = "event-countdown__light";
+		const img = document.createElement("img");
+		img.className = "event-countdown__light-img";
+		img.src = `modules/MMM-EventCountdown/images/${prefix}${lightIndex}.png`;
+		img.alt = isRunning ? "Event läuft" : "Countdown";
+		wrap.appendChild(img);
+		return wrap;
+	},
+
+	getCountdownColor (timeDiff, isRunning) {
+		if (!this.config.useUrgencyColors) {
+			return "#ffffff";
+		}
+
+		// Original-Farblogik (ppjoern): aufeinanderfolgende if-Blöcke, letzter Treffer gewinnt
+		const REMAINING_TIME_1 = 60 * 60 * 24;  // 24 h
+		const REMAINING_TIME_2 = 60 * 60;       // 1 h
+		const REMAINING_TIME_3 = 60 * 20;       // 20 min
+		const REMAINING_TIME_4 = 60 * 5;        // 5 min
+		let cellColor;
+
+		if (timeDiff < REMAINING_TIME_1 && !isRunning) {
+			cellColor = "#00ff00";
+		}
+		if (timeDiff < REMAINING_TIME_2 && timeDiff > REMAINING_TIME_3 && !isRunning) {
+			cellColor = "#ffff00";
+		}
+		if (timeDiff < REMAINING_TIME_3 && timeDiff > REMAINING_TIME_4 && !isRunning) {
+			cellColor = "#ff9966";
+		}
+		if (timeDiff <= REMAINING_TIME_4 && !isRunning) {
+			cellColor = "#ff6600";
+		}
+		if (isRunning) {
+			cellColor = "#00ff00";
+		}
+
+		return cellColor || "#ffffff";
 	},
 });
