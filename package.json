@@ -7,15 +7,5 @@
   "license": "MIT",
   "dependencies": {
     "node-ical": "^0.26.1"
-  },
-  "devDependencies": {
-    "grunt": "latest",
-    "grunt-eslint": "latest",
-    "grunt-jsonlint": "latest",
-    "grunt-markdownlint": "latest",
-    "grunt-stylelint": "latest",
-    "grunt-yamllint": "latest",
-    "stylelint-config-standard": "latest",
-    "time-grunt": "latest"
   }
 }

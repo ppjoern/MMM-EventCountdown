@@ -3,7 +3,7 @@ const Log = require("logger");
 const nodeIcal = require("node-ical");
 const { URL } = require("url");
 
-// Erlaubte Kalender-Domains (SSRF-Schutz). Bei Bedarf in der Modul-Config erweitern.
+// Allowed calendar hosts (SSRF protection). Extend via allowedHosts in module config.
 const DEFAULT_ALLOWED_HOSTS = [
 	"calendar.google.com",
 	"www.google.com",
@@ -12,7 +12,7 @@ const DEFAULT_ALLOWED_HOSTS = [
 	"calendar.yahoo.com",
 ];
 
-// Private/Interne IP-Bereiche blockieren (SSRF-Schutz)
+// Block private/internal IP ranges (SSRF protection)
 const BLOCKED_HOST_PATTERNS = [
 	/^localhost$/i,
 	/^127\./,
@@ -27,66 +27,59 @@ const BLOCKED_HOST_PATTERNS = [
 
 module.exports = NodeHelper.create({
 	start () {
-		Log.info("[MMM-EventCountdown] node_helper gestartet – Kalender-Fetch läuft serverseitig.");
+		Log.info("[MMM-EventCountdown] node_helper started – calendar fetch runs server-side.");
 	},
 
 	/**
-	 * Löst URL-Platzhalter aus der Config auf.
-	 * Unterstützt: "${SECRET_CAL_URL_1}", "**SECRET_CAL_URL_1**" (maskiert vom Browser)
+	 * Resolve URL placeholders from config.
+	 * Supports: "${SECRET_CAL_URL_1}", "**SECRET_CAL_URL_1**" (masked by the browser)
 	 */
 	resolveUrl (rawUrl) {
 		if (!rawUrl || typeof rawUrl !== "string") return null;
 
-		// Maskierte Form aus dem Browser: **SECRET_CAL_URL_1**
 		const masked = rawUrl.match(/^\*\*(SECRET_[A-Z0-9_]+)\*\*$/);
 		if (masked) return process.env[masked[1]] || null;
 
-		// Config-Platzhalter: ${SECRET_CAL_URL_1} oder ${CAL_URL_1}
 		const envRef = rawUrl.match(/^\$\{([A-Z0-9_]+)\}$/);
 		if (envRef) return process.env[envRef[1]] || null;
 
-		// Direkte URL (nicht empfohlen, aber unterstützt)
 		return rawUrl;
 	},
 
-	/**
-	 * Validiert eine Kalender-URL bevor sie abgerufen wird.
-	 */
+	/** Validate a calendar URL before fetching. */
 	isUrlAllowed (urlString, allowedHosts) {
 		let parsed;
 		try {
 			parsed = new URL(urlString);
 		} catch {
-			Log.error("[MMM-EventCountdown] Ungültige Kalender-URL (Parse-Fehler).");
+			Log.error("[MMM-EventCountdown] Invalid calendar URL (parse error).");
 			return false;
 		}
 
 		if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
-			Log.error("[MMM-EventCountdown] Nur http/https-URLs erlaubt.");
+			Log.error("[MMM-EventCountdown] Only http/https URLs are allowed.");
 			return false;
 		}
 
 		const host = parsed.hostname;
 		if (BLOCKED_HOST_PATTERNS.some((p) => p.test(host))) {
-			Log.error("[MMM-EventCountdown] Interne/private Hosts sind blockiert (SSRF-Schutz).");
+			Log.error("[MMM-EventCountdown] Internal/private hosts are blocked (SSRF protection).");
 			return false;
 		}
 
 		if (allowedHosts.length > 0 && !allowedHosts.includes(host)) {
-			Log.error(`[MMM-EventCountdown] Host "${host}" nicht in allowedHosts-Whitelist.`);
+			Log.error(`[MMM-EventCountdown] Host "${host}" is not in the allowedHosts whitelist.`);
 			return false;
 		}
 
 		return true;
 	},
 
-	/**
-	 * Holt und parst einen ICS-Feed. URL wird NICHT geloggt.
-	 */
+	/** Fetch and parse an ICS feed. The URL is never logged. */
 	async fetchCalendar (calendarConfig, allowedHosts) {
 		const resolvedUrl = this.resolveUrl(calendarConfig.url);
 		if (!resolvedUrl) {
-			Log.error(`[MMM-EventCountdown] URL für Kalender "${calendarConfig.name || "unbenannt"}" konnte nicht aufgelöst werden. Prüfe config.env und SECRET_-Variablen.`);
+			Log.error(`[MMM-EventCountdown] Could not resolve URL for calendar "${calendarConfig.name || "unnamed"}". Check config.env and SECRET_ variables.`);
 			return [];
 		}
 
@@ -106,27 +99,25 @@ module.exports = NodeHelper.create({
 			clearTimeout(timeout);
 
 			if (!response.ok) {
-				Log.error(`[MMM-EventCountdown] HTTP ${response.status} beim Abruf von Kalender "${calendarConfig.name || "unbenannt"}".`);
+				Log.error(`[MMM-EventCountdown] HTTP ${response.status} while fetching calendar "${calendarConfig.name || "unnamed"}".`);
 				return [];
 			}
 
 			const icsData = await response.text();
 			const parsed = nodeIcal.parseICS(icsData);
-			return this.parseEvents(parsed, calendarConfig.name);
+			return this.parseEvents(parsed);
 		} catch (err) {
 			if (err.name === "AbortError") {
-				Log.error(`[MMM-EventCountdown] Timeout beim Abruf von Kalender "${calendarConfig.name || "unbenannt"}".`);
+				Log.error(`[MMM-EventCountdown] Timeout while fetching calendar "${calendarConfig.name || "unnamed"}".`);
 			} else {
-				Log.error(`[MMM-EventCountdown] Fehler beim Abruf von Kalender "${calendarConfig.name || "unbenannt"}": ${err.message}`);
+				Log.error(`[MMM-EventCountdown] Error fetching calendar "${calendarConfig.name || "unnamed"}": ${err.message}`);
 			}
 			return [];
 		}
 	},
 
-	/**
-	 * Wandelt node-ical-Objekte in ein einheitliches Event-Format um.
-	 */
-	parseEvents (parsed, calendarName) {
+	/** Convert node-ical objects into a uniform event format. */
+	parseEvents (parsed) {
 		const events = [];
 		const now = Date.now();
 
@@ -138,18 +129,16 @@ module.exports = NodeHelper.create({
 			const end = entry.end ? new Date(entry.end) : start;
 			if (!start || isNaN(start.getTime())) continue;
 
-			// Vergangene Events (älter als 24h) überspringen
+			// Skip events that ended more than 24 hours ago
 			if (end && end.getTime() < now - 86400000) continue;
 
 			const isFullDay = entry.datetype === "date" || (start.getHours() === 0 && start.getMinutes() === 0 && (!end || (end.getTime() - start.getTime()) >= 86400000));
 
 			events.push({
-				title: String(entry.summary || "Ohne Titel"),
+				title: String(entry.summary || "Untitled"),
 				startDate: Math.floor(start.getTime() / 1000),
 				endDate: Math.floor((end ? end.getTime() : start.getTime()) / 1000),
 				isFullDay,
-				calendarName: calendarName || "",
-				location: String(entry.location || ""),
 			});
 		}
 
@@ -159,7 +148,7 @@ module.exports = NodeHelper.create({
 	async fetchAllCalendars (config) {
 		const calendars = config.calendars || [];
 		if (calendars.length === 0) {
-			Log.warn("[MMM-EventCountdown] Keine Kalender konfiguriert. Trage URLs in config.js ein (siehe README).");
+			Log.warn("[MMM-EventCountdown] No calendars configured. Add URLs in config.js (see README).");
 			return [];
 		}
 
@@ -181,7 +170,7 @@ module.exports = NodeHelper.create({
 					this.sendSocketNotification("EVENTS", events);
 				})
 				.catch((err) => {
-					Log.error(`[MMM-EventCountdown] Unerwarteter Fehler: ${err.message}`);
+					Log.error(`[MMM-EventCountdown] Unexpected error: ${err.message}`);
 					this.sendSocketNotification("EVENTS", []);
 				});
 		}

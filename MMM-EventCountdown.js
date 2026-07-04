@@ -1,54 +1,46 @@
-/* global Module, Log, moment */
+/* global Module */
 
 /**
- * MMM-EventCountdown – Countdown zum nächsten Kalender-Event.
+ * MMM-EventCountdown – countdown to the next calendar event.
  *
- * Kalender-URLs gehören NICHT hierher, sondern in:
+ * Calendar URLs do NOT belong here. Configure them in:
  *   ~/MagicMirror/config/config.env  →  SECRET_CAL_URL_1="https://..."
  *   ~/MagicMirror/config/config.js   →  calendars: [{ url: "${SECRET_CAL_URL_1}" }]
  *
- * Siehe README.md für die vollständige Anleitung.
+ * See README.md for the full setup guide.
  */
 Module.register("MMM-EventCountdown", {
 
 	defaults: {
-		// --- Kalender-Konfiguration (URLs siehe README!) ---
+		// --- Calendar (URLs – see README) ---
 		calendars: [
-			// Beispiel – echte URL in config.env als SECRET_CAL_URL_1 hinterlegen:
-			// { name: "Mein Kalender", url: "${SECRET_CAL_URL_1}" }
+			// Example – put the real URL in config.env as SECRET_CAL_URL_1:
+			// { name: "My Calendar", url: "${SECRET_CAL_URL_1}" }
 		],
-		allowedHosts: [],          // Zusätzliche erlaubte Domains für SSRF-Whitelist
-		fetchInterval: 60 * 1000,  // Wie oft der Server Kalender neu lädt (ms)
-		customInterval: 1000,      // Wie oft der Countdown aktualisiert wird (ms)
+		allowedHosts: [],          // Extra domains for the SSRF whitelist
+		fetchInterval: 60 * 1000,  // How often the server reloads calendars (ms)
+		customInterval: 1000,      // Countdown tick interval (ms)
 
-		// --- Anzeige ---
+		// --- Display ---
 		showLight: false,
-		showColons: false,         // Doppelpunkte zwischen den Zahlengruppen (z. B. 05:23:45)
-		useUrgencyColors: true,    // true = Original-Farben je nach Restzeit | false = immer weiß
-		unitWidth: 2.8,            // Spaltenbreite in Zeichenbreiten (ch)
+		showColons: false,         // Colons between groups (e.g. 05:23:45)
+		useUrgencyColors: true,    // true = urgency colors | false = always white
+		unitWidth: 2.8,            // Column width in character units (ch)
 		daysLabel: "DAYS",
 		hoursLabel: "HOURS",
 		minutesLabel: "MINUTES",
 		secondsLabel: "SECONDS",
 		size: "medium",            // "small" | "medium" | "large" | "xlarge"
-		valueSize: null,           // Feste Größe – nur bei einem Display, sonst null
-		scale: 1,                  // Manueller Faktor auf clamp-Größe (Fallback)
-		scaleBrowser: null,        // Optional nur großer Screen (>1920px)
-		scaleHdmi: null,           // Optional nur kleiner Screen (Pi/HDMI)
+		valueSize: null,           // Fixed font size – only for a single display
+		scale: 1,                  // Manual multiplier on the clamp-based size
 		showDebugBorders: false,
 		groupGap: 0.5,
 		noEventText: "NO SCHEDULED EVENT!",
 		runningText: "is running",
 		startsInText: "starts in",
-
-		// --- Fallback wenn kein Event gefunden ---
-		event: "Kein Event",
-		date: "2031-01-01",
-		startDate: 1893452400,
-		endDate: 1924988400,
 	},
 
-	// Event-State getrennt von this.config halten (Sicherheit: keine Daten in /config)
+	// Keep event data separate from this.config (secrets must not appear in /config)
 	eventState: {
 		title: null,
 		startDate: null,
@@ -71,11 +63,7 @@ Module.register("MMM-EventCountdown", {
 		if (this.updateTimer) clearInterval(this.updateTimer);
 	},
 
-	/**
-	 * Fordert Events vom serverseitigen node_helper an.
-	 * Die Kalender-URLs werden mitgeschickt (ggf. maskiert als **SECRET_...**),
-	 * der node_helper löst sie serverseitig über process.env auf.
-	 */
+	/** Ask the server-side node_helper to fetch calendar events. */
 	requestEvents () {
 		this.sendSocketNotification("FETCH_EVENTS", {
 			calendars: this.config.calendars,
@@ -89,9 +77,7 @@ Module.register("MMM-EventCountdown", {
 		}
 	},
 
-	/**
-	 * Filtert und wählt das nächste relevante Event aus.
-	 */
+	/** Pick the next relevant event from the fetched list. */
 	processEvents (events) {
 		if (!Array.isArray(events) || events.length === 0) {
 			this.eventState.hasEvent = false;
@@ -119,12 +105,7 @@ Module.register("MMM-EventCountdown", {
 		this.eventState.startDate = next.startDate;
 		this.eventState.endDate = next.endDate;
 		this.eventState.hasEvent = true;
-
-		if (now >= next.startDate && now <= next.endDate) {
-			this.eventState.isRunning = true;
-		} else {
-			this.eventState.isRunning = false;
-		}
+		this.eventState.isRunning = now >= next.startDate && now <= next.endDate;
 
 		this.updateDom();
 	},
@@ -238,7 +219,7 @@ Module.register("MMM-EventCountdown", {
 				}
 			}
 		} catch (e) {
-			// localStorage blockiert (Safari privat etc.)
+			// localStorage blocked (private browsing, etc.)
 		}
 
 		const cfg = this.config.showDebugBorders;
@@ -248,13 +229,14 @@ Module.register("MMM-EventCountdown", {
 	createDebugBadge () {
 		const badge = document.createElement("div");
 		badge.className = "event-countdown__debug-badge";
-		badge.textContent = "DEBUG RAHMEN AN";
+		badge.textContent = "DEBUG BORDERS ON";
 		badge.setAttribute("aria-hidden", "true");
 		return badge;
 	},
 
 	/**
-	 * Globales <style> ins Dokument – höhere Spezifität als MagicMirror-main.css
+	 * Inject high-specificity debug styles (outline avoids layout shift).
+	 * Kept in JS so it reliably overrides MagicMirror's global CSS.
 	 */
 	ensureDebugStyles () {
 		const id = "mmm-eventcountdown-debug-style";
@@ -263,7 +245,6 @@ Module.register("MMM-EventCountdown", {
 
 		const style = document.createElement("style");
 		style.id = id;
-		// outline statt border → verändert keine Zellbreite (kein Überlappen)
 		style.textContent = `
 			.module.MMM-EventCountdown .event-countdown__debug-badge {
 				display: block !important;
@@ -312,24 +293,10 @@ Module.register("MMM-EventCountdown", {
 		document.head.appendChild(style);
 	},
 
-	/**
-	 * Manueller Skalierungsfaktor (--ec-scale). Responsive Größe kommt aus CSS clamp().
-	 */
+	/** Manual scale factor applied via --ec-scale. Base size comes from CSS clamp(). */
 	getScale () {
-		const specific = this.isSmallScreen() ? this.config.scaleHdmi : this.config.scaleBrowser;
-		const specificNum = Number(specific);
-		if (specific != null && Number.isFinite(specificNum) && specificNum > 0) {
-			return specificNum;
-		}
-
-		const fallback = Number(this.config.scale);
-		return Number.isFinite(fallback) && fallback > 0 ? fallback : 1;
-	},
-
-	isSmallScreen () {
-		const screenH = window.screen ? window.screen.height : 0;
-		const screenW = window.screen ? window.screen.width : 0;
-		return Math.max(screenH, screenW) <= 1920;
+		const scale = Number(this.config.scale);
+		return Number.isFinite(scale) && scale > 0 ? scale : 1;
 	},
 
 	createTrafficLight (timeDiff, isRunning) {
@@ -342,7 +309,7 @@ Module.register("MMM-EventCountdown", {
 		const img = document.createElement("img");
 		img.className = "event-countdown__light-img";
 		img.src = `modules/MMM-EventCountdown/images/${prefix}${lightIndex}.png`;
-		img.alt = isRunning ? "Event läuft" : "Countdown";
+		img.alt = isRunning ? "Event in progress" : "Countdown";
 		wrap.appendChild(img);
 		return wrap;
 	},
@@ -352,7 +319,6 @@ Module.register("MMM-EventCountdown", {
 			return "#ffffff";
 		}
 
-		// Original-Farblogik (ppjoern): aufeinanderfolgende if-Blöcke, letzter Treffer gewinnt
 		const REMAINING_TIME_1 = 60 * 60 * 24;  // 24 h
 		const REMAINING_TIME_2 = 60 * 60;       // 1 h
 		const REMAINING_TIME_3 = 60 * 20;       // 20 min

@@ -1,31 +1,29 @@
 /*
  * =============================================================================
- * MMM-EventCountdown – Responsives Layout
+ * MMM-EventCountdown – responsive layout
  * =============================================================================
  *
- * KONZEPT
+ * CONCEPT
  * -------
- * 1. Eine Basisgröße: --ec-value (Höhe der Countdown-Ziffern)
- * 2. clamp(MIN, PREFERRED, MAX) – nur vmin (pro Browser/Viewport)
- * 3. Titel, Labels, Abstände = festes Verhältnis zu --ec-value
- * 4. Optional: --ec-scale aus config (manuell, kein Auto-Boost in JS)
+ * 1. Base size: --ec-value (height of countdown digits)
+ * 2. clamp(MIN, PREFERRED, MAX) using vmin (per browser/viewport)
+ * 3. Title, labels, spacing scale relative to --ec-value
+ * 4. Optional --ec-scale from config (manual fine-tuning)
  *
- * Formel:  clamp(MIN vmin, PREFERRED vmin, MAX vmin) × --ec-scale
+ * Formula: clamp(MIN vmin, PREFERRED vmin, MAX vmin) × --ec-scale
  *
- * Beispiel „xlarge“ bei 1080p vs 4K (vmin ≈ Viewport-Höhe):
- *   17vmin → ~184px  |  17vmin → ~367px
- *
- * Größen-Presets (nur diese Zeile ändern sich):
+ * Size presets (only --ec-value-fluid changes):
  *   small  → clamp(4vmin,  8vmin, 15vmin)
  *   medium → clamp(5vmin, 11vmin, 20vmin)
  *   large  → clamp(6vmin, 13vmin, 26vmin)
  *   xlarge → clamp(8vmin, 17vmin, 34vmin)
  *
- * Feintuning in config.js: size, scale / scaleBrowser / scaleHdmi, unitWidth, groupGap
+ * Fine-tuning in config.js: size, scale, unitWidth, groupGap
+ * Debug borders are injected via JS (ensureDebugStyles) for higher specificity.
  * =============================================================================
  */
 
-/* --- 1. Tokens (Defaults = medium) --- */
+/* --- 1. Tokens (defaults = medium) --- */
 
 .event-countdown {
 	--ec-scale: 1;
@@ -48,7 +46,7 @@
 	text-align: center;
 }
 
-/* --- 2. Größen-Presets --- */
+/* --- 2. Size presets --- */
 
 .event-countdown--small {
 	--ec-value-fluid: clamp(4vmin, 8vmin, 15vmin);
@@ -62,7 +60,7 @@
 	--ec-value-fluid: clamp(8vmin, 17vmin, 34vmin);
 }
 
-/* --- 3. Kopfzeile --- */
+/* --- 3. Header --- */
 
 .event-countdown__title {
 	color: #fff;
@@ -82,7 +80,7 @@
 	margin-bottom: 0.15em;
 }
 
-/* --- 4. Timer-Zeile --- */
+/* --- 4. Timer row --- */
 
 .event-countdown__timer {
 	display: flex;
@@ -94,7 +92,7 @@
 	line-height: 1;
 }
 
-/* Mit Doppelpunkten: kein Flex-Gap (sonst doppelt), Abstand nur in .event-countdown__sep */
+/* With colons: no flex gap (would double spacing); gap lives in .event-countdown__sep */
 
 .event-countdown__timer--colons {
 	gap: 0;
@@ -111,7 +109,7 @@
 	overflow: visible;
 }
 
-/* --- 5. Spalten (Zelle = Wert + Label) --- */
+/* --- 5. Columns (value + label) --- */
 
 .event-countdown__column {
 	display: flex;
@@ -159,7 +157,7 @@
 	line-height: 1;
 }
 
-/* --- 6. Ampel --- */
+/* --- 6. Traffic light --- */
 
 .event-countdown__light {
 	margin-top: 0.5em;
@@ -171,32 +169,4 @@
 	max-width: 100%;
 	max-height: clamp(8vmin, 18vmin, 28vmin);
 	object-fit: contain;
-}
-
-/* --- 7. Debug (outline = kein Layout-Shift) --- */
-
-.event-countdown--debug .event-countdown__column {
-	outline: 3px solid #f22;
-	outline-offset: 1px;
-	background: rgba(255, 0, 0, 0.1);
-}
-
-.event-countdown--debug .event-countdown__value {
-	outline: 2px solid #3cf;
-	background: rgba(51, 204, 255, 0.1);
-}
-
-.event-countdown--debug .event-countdown__label {
-	outline: 2px solid #3f6;
-	background: rgba(51, 255, 102, 0.1);
-}
-
-.event-countdown--debug .event-countdown__sep {
-	outline: 2px solid #fff;
-	background: rgba(255, 255, 255, 0.08);
-}
-
-.event-countdown--debug .event-countdown__timer {
-	outline: 3px solid #f90;
-	outline-offset: 2px;
 }

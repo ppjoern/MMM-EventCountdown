@@ -1,8 +1,8 @@
 # MMM-EventCountdown
 
-Countdown zum nächsten Kalender-Event für [MagicMirror²](https://github.com/MichMich/MagicMirror/).
+Countdown to the next calendar event for [MagicMirror²](https://github.com/MichMich/MagicMirror/).
 
-Ab Version 2.0 enthält das Modul einen **eigenen serverseitigen Kalender-Fetcher** (`node_helper.js`). Die Abhängigkeit von MMM-CalendarExt2 entfällt.
+The module includes a **server-side calendar fetcher** (`node_helper.js`) so calendar URLs never reach the browser.
 
 ## Screenshots
 
@@ -22,34 +22,34 @@ npm install
 
 ---
 
-## Kalender-URLs konfigurieren
+## Configure calendar URLs
 
-> **Die Kalender-URLs gehören NICHT in die Modul-Dateien** (`MMM-EventCountdown.js`, `node_helper.js`).
-> Sie werden an **zwei Stellen** in der MagicMirror-Hauptkonfiguration hinterlegt:
+> **Do NOT put calendar URLs in module files** (`MMM-EventCountdown.js`, `node_helper.js`).
+> Configure them in **two places** in the MagicMirror main config:
 
-### Schritt 1: Geheime URL in `config.env` eintragen
+### Step 1: Add the secret URL to `config.env`
 
-Datei: **`~/MagicMirror/config/config.env`**
+File: **`~/MagicMirror/config/config.env`**
 
 ```bash
-# Google Calendar – private ICS-URL (aus Google Calendar → Einstellungen → Kalender integrieren)
-SECRET_CAL_URL_1="https://calendar.google.com/calendar/ical/deine.email@gmail.com/private-abc123def456/basic.ics"
+# Google Calendar – private ICS URL (Google Calendar → Settings → Integrate calendar)
+SECRET_CAL_URL_1="https://calendar.google.com/calendar/ical/your.email@gmail.com/private-abc123def456/basic.ics"
 
-# Optional: weiterer Kalender
+# Optional: another calendar
 SECRET_CAL_URL_2="https://outlook.office365.com/owa/calendar/..."
 ```
 
-> **Wo finde ich die URL?**
-> - **Google Calendar:** Kalender → ⚙ Einstellungen → Kalender auswählen → „Geheime Adresse im iCal-Format" → URL kopieren
-> - **Outlook/Office365:** Kalender → Einstellungen → Geteilte Kalender → Veröffentlichen → ICS-Link
+> **Where to find the URL**
+> - **Google Calendar:** Calendar → ⚙ Settings → select calendar → "Secret address in iCal format" → copy URL
+> - **Outlook/Office365:** Calendar → Settings → Shared calendars → Publish → ICS link
 >
-> Die URL enthält ein **geheimes Token** – behandle sie wie ein Passwort!
+> The URL contains a **secret token** – treat it like a password!
 
-### Schritt 2: Modul in `config.js` eintragen
+### Step 2: Add the module to `config.js`
 
-Datei: **`~/MagicMirror/config/config.js`**
+File: **`~/MagicMirror/config/config.js`**
 
-Root-Level in `config.js` (einmalig):
+Root-level in `config.js` (once):
 
 ```js
 let config = {
@@ -59,7 +59,7 @@ let config = {
 };
 ```
 
-Vollständiger Modul-Block (direkt in `modules: [ ... ]` einfügen):
+Full module block (add to `modules: [ ... ]`):
 
 ```js
 {
@@ -67,35 +67,33 @@ Vollständiger Modul-Block (direkt in `modules: [ ... ]` einfügen):
   position: "middle_center",
 
   config: {
-    // --- Kalender (URLs in config.env, hier nur Verweis!) ---
+    // --- Calendars (URLs in config.env, reference only here!) ---
     calendars: [
       {
-        name: "Mein Kalender",
+        name: "My Calendar",
         url: "${SECRET_CAL_URL_1}",
         fetchTimeout: 30000,
       },
     ],
     allowedHosts: [],
 
-    // --- Aktualisierung ---
-    fetchInterval: 60000,   // Kalender neu laden (ms)
-    customInterval: 1000,   // Countdown-Tick (ms)
+    // --- Refresh ---
+    fetchInterval: 60000,   // reload calendars (ms)
+    customInterval: 1000,   // countdown tick (ms)
 
-    // --- Darstellung ---
+    // --- Display ---
     showLight: true,
     showColons: false,      // true = 05:23:45  |  false = 052345
-    useUrgencyColors: true, // Farben je nach Restzeit | false = immer weiß
+    useUrgencyColors: true, // urgency colors by remaining time | false = always white
 
     size: "xlarge",         // small | medium | large | xlarge
-    unitWidth: 2.8,         // Breite jeder Zahlengruppe (ch)
-    groupGap: 0.5,          // Abstand zwischen Gruppen (ch)
-    scale: 1,               // optional: globaler Größenfaktor
-    // scaleBrowser: 1,     // optional: nur großer Screen (>1920px)
-    // scaleHdmi: 1.1,      // optional: nur Pi/HDMI (≤1920px)
+    unitWidth: 2.8,         // width of each digit group (ch)
+    groupGap: 0.5,          // gap between groups (ch)
+    scale: 1,               // optional global size multiplier
 
-    showDebugBorders: false, // Layout-Rahmen (siehe unten)
+    showDebugBorders: false, // layout debug frames (see below)
 
-    // --- Beschriftungen ---
+    // --- Labels ---
     daysLabel: "DAYS",
     hoursLabel: "HOURS",
     minutesLabel: "MINUTES",
@@ -107,16 +105,16 @@ Vollständiger Modul-Block (direkt in `modules: [ ... ]` einfügen):
 },
 ```
 
-> Die gleiche Vorlage liegt als `config.example.js` im Modul-Ordner.
+> The same template is available as `config.example.js` in the module folder.
 
-Minimal-Beispiel:
+Minimal example:
 
 ```js
 {
   module: "MMM-EventCountdown",
   position: "middle_center",
   config: {
-    calendars: [{ name: "Mein Kalender", url: "${SECRET_CAL_URL_1}" }],
+    calendars: [{ name: "My Calendar", url: "${SECRET_CAL_URL_1}" }],
     size: "xlarge",
     showColons: false,
     showLight: true,
@@ -124,168 +122,153 @@ Minimal-Beispiel:
 },
 ```
 
-### Zusammenfassung: Wo was hingehört
+### Summary: where things go
 
-| Was | Wo | Beispiel |
-|-----|----|----------|
-| **Echte Kalender-URL** (geheim) | `~/MagicMirror/config/config.env` | `SECRET_CAL_URL_1="https://calendar.google.com/..."` |
-| **Verweis auf die URL** | `~/MagicMirror/config/config.js` → `calendars[].url` | `url: "${SECRET_CAL_URL_1}"` |
-| **Secret-Schutz aktivieren** | `~/MagicMirror/config/config.js` (Root-Level) | `hideConfigSecrets: true` |
-| **Modul-Code** | `modules/MMM-EventCountdown/` | ❌ Keine URLs hier eintragen! |
+| What | Where | Example |
+|------|-------|---------|
+| **Real calendar URL** (secret) | `~/MagicMirror/config/config.env` | `SECRET_CAL_URL_1="https://calendar.google.com/..."` |
+| **Reference to the URL** | `~/MagicMirror/config/config.js` → `calendars[].url` | `url: "${SECRET_CAL_URL_1}"` |
+| **Enable secret protection** | `~/MagicMirror/config/config.js` (root level) | `hideConfigSecrets: true` |
+| **Module code** | `modules/MMM-EventCountdown/` | ❌ Do not put URLs here! |
 
-### Sicherheitshinweise
+### Security notes
 
-1. **`hideConfigSecrets: true`** setzen – verhindert, dass URLs im Browser (`/config`) sichtbar sind.
-2. **`SECRET_`-Präfix** für alle Kalender-URLs in `config.env` verwenden.
-3. **`ipWhitelist`** in `config.js` setzen, damit nur vertrauenswürdige Geräte auf den Spiegel zugreifen können:
+1. Set **`hideConfigSecrets: true`** – prevents URLs from appearing in the browser (`/config`).
+2. Use the **`SECRET_` prefix** for all calendar URLs in `config.env`.
+3. Set **`ipWhitelist`** in `config.js` so only trusted devices can access the mirror:
    ```js
    ipWhitelist: ["127.0.0.1", "::ffff:127.0.0.1", "::1", "192.168.1.0/24"],
    ```
-4. Der `node_helper` lädt Kalender **nur serverseitig** – die URL erreicht nie den Browser.
-5. Nur bekannte Kalender-Domains sind erlaubt (SSRF-Schutz). Eigene Server über `allowedHosts` freigeben:
+4. The `node_helper` fetches calendars **server-side only** – the URL never reaches the browser.
+5. Only known calendar domains are allowed (SSRF protection). Allow custom servers via `allowedHosts`:
    ```js
-   allowedHosts: ["mein-kalender.example.com"],
+   allowedHosts: ["my-calendar.example.com"],
    ```
 
 ---
 
-## Konfigurationsoptionen
+## Configuration options
 
-### Kalender & Sicherheit
+### Calendar & security
 
-| Option | Beschreibung | Standard |
-|--------|-------------|----------|
-| `calendars` | Array mit `{ name, url, fetchTimeout? }` | `[]` |
-| `calendars[].name` | Anzeigename (nur für Logs) | – |
-| `calendars[].url` | Verweis auf Env-Variable, z. B. `"${SECRET_CAL_URL_1}"` | – |
-| `calendars[].fetchTimeout` | Timeout pro Kalender-Abruf (ms) | `30000` |
-| `allowedHosts` | Zusätzliche erlaubte Domains (SSRF-Whitelist) | `[]` |
-| `fetchInterval` | Kalender-Neuladen (ms) | `60000` |
-| `customInterval` | Countdown-Aktualisierung (ms) | `1000` |
+| Option | Description | Default |
+|--------|-------------|---------|
+| `calendars` | Array of `{ name, url, fetchTimeout? }` | `[]` |
+| `calendars[].name` | Display name (logs only) | – |
+| `calendars[].url` | Env reference, e.g. `"${SECRET_CAL_URL_1}"` | – |
+| `calendars[].fetchTimeout` | Timeout per calendar fetch (ms) | `30000` |
+| `allowedHosts` | Additional allowed domains (SSRF whitelist) | `[]` |
+| `fetchInterval` | Calendar reload interval (ms) | `60000` |
+| `customInterval` | Countdown update interval (ms) | `1000` |
 
-### Darstellung
+### Display
 
-| Option | Beschreibung | Standard |
-|--------|-------------|----------|
-| `size` | Größen-Preset: `small`, `medium`, `large`, `xlarge` | `"medium"` |
-| `unitWidth` | Breite jeder Zahlengruppe in `ch` | `2.8` |
-| `groupGap` | Abstand zwischen Zahlengruppen in `ch` | `0.5` |
-| `showColons` | Doppelpunkte zwischen Gruppen (`05:23:45`) | `false` |
-| `showLight` | Ampel-Grafik unter dem Countdown | `false` |
-| `useUrgencyColors` | Farben je nach Restzeit (grün → orange) | `true` |
-| `valueSize` | Feste Schriftgröße (z. B. `"12rem"`) – nur bei **einem** Display | `null` |
+| Option | Description | Default |
+|--------|-------------|---------|
+| `size` | Size preset: `small`, `medium`, `large`, `xlarge` | `"medium"` |
+| `unitWidth` | Width of each digit group in `ch` | `2.8` |
+| `groupGap` | Gap between digit groups in `ch` | `0.5` |
+| `showColons` | Colons between groups (`05:23:45`) | `false` |
+| `showLight` | Traffic-light graphic below the countdown | `false` |
+| `useUrgencyColors` | Colors by remaining time (green → orange) | `true` |
+| `valueSize` | Fixed font size (e.g. `"12rem"`) – single display only | `null` |
 
-### Skalierung (optional)
+### Scaling (optional)
 
-| Option | Beschreibung | Standard |
-|--------|-------------|----------|
-| `scale` | Globaler Faktor auf die CSS-Größe | `1` |
-| `scaleBrowser` | Faktor nur für großen Screen (max. Dimension > 1920px) | `null` (= `scale`) |
-| `scaleHdmi` | Faktor nur für kleinen Screen (Pi/HDMI, ≤ 1920px) | `null` (= `scale`) |
+| Option | Description | Default |
+|--------|-------------|---------|
+| `scale` | Global multiplier on the CSS clamp size | `1` |
 
-Die Basisgröße kommt aus **CSS `clamp(vmin)`** und passt sich pro Browser automatisch an. `scale*` ist nur für Feintuning.
+Base size comes from **CSS `clamp(vmin)`** and adapts per browser automatically. `scale` is for fine-tuning only.
 
-| Preset | CSS-Formel (Ziffernhöhe) |
-|--------|--------------------------|
+| Preset | CSS formula (digit height) |
+|--------|----------------------------|
 | `small` | `clamp(4vmin, 8vmin, 15vmin)` |
 | `medium` | `clamp(5vmin, 11vmin, 20vmin)` |
 | `large` | `clamp(6vmin, 13vmin, 26vmin)` |
 | `xlarge` | `clamp(8vmin, 17vmin, 34vmin)` |
 
-### Texte
+### Text labels
 
-| Option | Beschreibung | Standard |
-|--------|-------------|----------|
-| `daysLabel` | Label Tage | `"DAYS"` |
-| `hoursLabel` | Label Stunden | `"HOURS"` |
-| `minutesLabel` | Label Minuten | `"MINUTES"` |
-| `secondsLabel` | Label Sekunden | `"SECONDS"` |
-| `noEventText` | Text wenn kein Event | `"NO SCHEDULED EVENT!"` |
-| `runningText` | Text während Event läuft | `"is running"` |
-| `startsInText` | Text vor Event-Start | `"starts in"` |
+| Option | Description | Default |
+|--------|-------------|---------|
+| `daysLabel` | Days label | `"DAYS"` |
+| `hoursLabel` | Hours label | `"HOURS"` |
+| `minutesLabel` | Minutes label | `"MINUTES"` |
+| `secondsLabel` | Seconds label | `"SECONDS"` |
+| `noEventText` | Text when no event is found | `"NO SCHEDULED EVENT!"` |
+| `runningText` | Text while event is running | `"is running"` |
+| `startsInText` | Text before event starts | `"starts in"` |
 
 ### Debug
 
-| Option | Beschreibung | Standard |
-|--------|-------------|----------|
-| `showDebugBorders` | Farbige Rahmen um Layout-Zellen | `false` |
+| Option | Description | Default |
+|--------|-------------|---------|
+| `showDebugBorders` | Colored outlines around layout cells | `false` |
 
-Alternativ ohne `config.js`:
+Alternatives without editing `config.js`:
 
-- URL: `http://<spiegel-ip>:8080/?debugBorders=1`
-- Browser-Konsole: `localStorage.setItem("MMM-EventCountdown-debug","1"); location.reload();`
+- URL: `http://<mirror-ip>:8080/?debugBorders=1`
+- Browser console: `localStorage.setItem("MMM-EventCountdown-debug","1"); location.reload();`
 
 ---
 
-## Tipps zur Feinjustierung
+## Fine-tuning tips
 
-### Größe
-
-```js
-size: "xlarge",   // Hauptregler – skaliert mit Viewport (vmin)
-```
-
-### Abstände zwischen Zifferngruppen
+### Size
 
 ```js
-groupGap: 0.5,    // kleiner = enger  |  größer = weiter
-unitWidth: 2.8,   // Spaltenbreite pro Gruppe (2 Ziffern + etwas Luft)
+size: "xlarge",   // main control – scales with viewport (vmin)
 ```
 
-Bei `showColons: true` sitzt der Doppelpunkt **in** der `groupGap`-Breite – der Abstand wird nicht verdoppelt.
+### Spacing between digit groups
 
-### Gemischte Displays (Browser + HDMI)
+```js
+groupGap: 0.5,    // smaller = tighter  |  larger = wider
+unitWidth: 2.8,   // column width per group (2 digits + padding)
+```
 
-Eine `config.js` für alle Clients. Jeder Browser rechnet mit seinem Viewport:
+With `showColons: true`, the colon sits **inside** the `groupGap` width – spacing is not doubled.
+
+### Mixed displays (browser + HDMI)
+
+One `config.js` for all clients. Each browser calculates size from its own viewport:
 
 ```js
 size: "xlarge",
-// nur falls ein Display noch abweicht:
-// scaleBrowser: 0.95,
-// scaleHdmi: 1.1,
+scale: 1,         // optional fine-tuning if needed
 ```
 
-### Farben
+### Colors
 
-- `useUrgencyColors: true` – Countdown-Ziffern wechseln je nach Restzeit; laufende Events grün
-- Titel und Untertitel („starts in“ / „is running“) sind immer weiß
-- Bei `showColons: true` haben Doppelpunkte die gleiche Farbe wie die Ziffern
-
----
-
-## Migration von MMM-CalendarExt2
-
-Wenn du bisher MMM-CalendarExt2 genutzt hast:
-
-1. Die Kalender-URL aus der CalExt2-Config (`calendars[].url`) in `config.env` als `SECRET_CAL_URL_1` übernehmen.
-2. MMM-CalendarExt2 aus `config.js` entfernen (optional, wenn nicht mehr benötigt).
-3. `npm install` im Modul-Ordner ausführen (neue Abhängigkeit `node-ical`).
-4. MagicMirror neu starten.
+- `useUrgencyColors: true` – countdown digits change by remaining time; running events are green
+- Title and subtitle ("starts in" / "is running") are always white
+- With `showColons: true`, colons use the same color as the digits
 
 ---
 
-## Architektur
+## Architecture
 
 ```
 config.env (SECRET_CAL_URL_1)  ──┐
 config.js  (calendars[].url)   ──┤
                                    ▼
-                          node_helper.js  (Server, Node.js)
-                          ├── URL aus process.env auflösen
-                          ├── ICS-Feed abrufen (HTTPS only)
-                          ├── SSRF-Whitelist prüfen
-                          └── Events parsen (node-ical)
+                          node_helper.js  (server, Node.js)
+                          ├── resolve URL from process.env
+                          ├── fetch ICS feed (HTTPS only)
+                          ├── check SSRF whitelist
+                          └── parse events (node-ical)
                                    │
                           Socket: "EVENTS"
                                    ▼
-                          MMM-EventCountdown.js  (Browser)
-                          ├── Nächstes Event filtern
-                          ├── Countdown berechnen
-                          └── DOM sicher aufbauen (textContent)
+                          MMM-EventCountdown.js  (browser)
+                          ├── filter next event
+                          ├── compute countdown
+                          └── build DOM safely (textContent)
 ```
 
 ---
 
-## Lizenz
+## License
 
 MIT
