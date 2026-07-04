@@ -34,6 +34,7 @@
 	--ec-ratio-subtitle: 0.171;
 	--ec-ratio-label: 0.171;
 
+	/* Derived font sizes – keep title/labels proportional to digit height */
 	--ec-title: calc(var(--ec-value) * var(--ec-ratio-title));
 	--ec-subtitle: calc(var(--ec-value) * var(--ec-ratio-subtitle));
 

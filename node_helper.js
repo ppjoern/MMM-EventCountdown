@@ -10,6 +10,13 @@ const DEFAULT_ALLOWED_HOSTS = [
 	"outlook.office365.com",
 	"outlook.live.com",
 	"calendar.yahoo.com",
+	"icloud.com",
+	"caldav.icloud.com",
+];
+
+// Subdomain suffixes allowed when the base provider is trusted (e.g. p42-caldav.icloud.com).
+const DEFAULT_ALLOWED_SUFFIXES = [
+	".icloud.com",
 ];
 
 // Block private/internal IP ranges (SSRF protection)
@@ -46,8 +53,12 @@ module.exports = NodeHelper.create({
 		return rawUrl;
 	},
 
-	/** Validate a calendar URL before fetching. */
-	isUrlAllowed (urlString, allowedHosts) {
+	/**
+	 * Validate a calendar URL before fetching.
+	 * Checks protocol, blocks private IPs, then matches host against the whitelist
+	 * (exact hostname or allowed suffix such as .icloud.com).
+	 */
+	isUrlAllowed (urlString, allowedHosts, allowedSuffixes) {
 		let parsed;
 		try {
 			parsed = new URL(urlString);
@@ -67,7 +78,10 @@ module.exports = NodeHelper.create({
 			return false;
 		}
 
-		if (allowedHosts.length > 0 && !allowedHosts.includes(host)) {
+		const hostAllowed = allowedHosts.includes(host)
+			|| allowedSuffixes.some((suffix) => host.endsWith(suffix));
+
+		if (!hostAllowed) {
 			Log.error(`[MMM-EventCountdown] Host "${host}" is not in the allowedHosts whitelist.`);
 			return false;
 		}
@@ -75,15 +89,18 @@ module.exports = NodeHelper.create({
 		return true;
 	},
 
-	/** Fetch and parse an ICS feed. The URL is never logged. */
-	async fetchCalendar (calendarConfig, allowedHosts) {
+	/**
+	 * Fetch and parse an ICS feed. The URL is never logged.
+	 * Uses AbortController so slow or stuck feeds cannot block the helper indefinitely.
+	 */
+	async fetchCalendar (calendarConfig, allowedHosts, allowedSuffixes) {
 		const resolvedUrl = this.resolveUrl(calendarConfig.url);
 		if (!resolvedUrl) {
 			Log.error(`[MMM-EventCountdown] Could not resolve URL for calendar "${calendarConfig.name || "unnamed"}". Check config.env and SECRET_ variables.`);
 			return [];
 		}
 
-		if (!this.isUrlAllowed(resolvedUrl, allowedHosts)) {
+		if (!this.isUrlAllowed(resolvedUrl, allowedHosts, allowedSuffixes)) {
 			return [];
 		}
 
@@ -116,7 +133,10 @@ module.exports = NodeHelper.create({
 		}
 	},
 
-	/** Convert node-ical objects into a uniform event format. */
+	/**
+	 * Convert node-ical objects into a uniform event format for the browser module.
+	 * Full-day events are flagged here and filtered out later in the frontend.
+	 */
 	parseEvents (parsed) {
 		const events = [];
 		const now = Date.now();
@@ -132,6 +152,7 @@ module.exports = NodeHelper.create({
 			// Skip events that ended more than 24 hours ago
 			if (end && end.getTime() < now - 86400000) continue;
 
+			// node-ical marks all-day events with datetype "date", or midnight-to-midnight spans
 			const isFullDay = entry.datetype === "date" || (start.getHours() === 0 && start.getMinutes() === 0 && (!end || (end.getTime() - start.getTime()) >= 86400000));
 
 			events.push({
@@ -145,6 +166,7 @@ module.exports = NodeHelper.create({
 		return events;
 	},
 
+	/** Fetch every configured calendar sequentially and merge the event lists. */
 	async fetchAllCalendars (config) {
 		const calendars = config.calendars || [];
 		if (calendars.length === 0) {
@@ -153,16 +175,18 @@ module.exports = NodeHelper.create({
 		}
 
 		const allowedHosts = [...DEFAULT_ALLOWED_HOSTS, ...(config.allowedHosts || [])];
+		const allowedSuffixes = [...DEFAULT_ALLOWED_SUFFIXES];
 		const allEvents = [];
 
 		for (const cal of calendars) {
-			const events = await this.fetchCalendar(cal, allowedHosts);
+			const events = await this.fetchCalendar(cal, allowedHosts, allowedSuffixes);
 			allEvents.push(...events);
 		}
 
 		return allEvents;
 	},
 
+	/** Browser asks for events → server fetches ICS → sends parsed list back via socket. */
 	socketNotificationReceived (notification, payload) {
 		if (notification === "FETCH_EVENTS") {
 			this.fetchAllCalendars(payload)

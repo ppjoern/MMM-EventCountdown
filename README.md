@@ -35,13 +35,14 @@ File: **`~/MagicMirror/config/config.env`**
 # Google Calendar – private ICS URL (Google Calendar → Settings → Integrate calendar)
 SECRET_CAL_URL_1="https://calendar.google.com/calendar/ical/your.email@gmail.com/private-abc123def456/basic.ics"
 
-# Optional: another calendar
-SECRET_CAL_URL_2="https://outlook.office365.com/owa/calendar/..."
+# Optional: iCloud public calendar
+SECRET_CAL_URL_2="https://pXX-caldav.icloud.com/published/2/..."
 ```
 
 > **Where to find the URL**
 > - **Google Calendar:** Calendar → ⚙ Settings → select calendar → "Secret address in iCal format" → copy URL
 > - **Outlook/Office365:** Calendar → Settings → Shared calendars → Publish → ICS link
+> - **Apple iCloud:** Calendar app → Calendar → Share Calendar → Public Calendar → Copy Link (host looks like `pXX-caldav.icloud.com`)
 >
 > The URL contains a **secret token** – treat it like a password!
 
@@ -140,7 +141,7 @@ Minimal example:
    ipWhitelist: ["127.0.0.1", "::ffff:127.0.0.1", "::1", "192.168.1.0/24"],
    ```
 4. The `node_helper` fetches calendars **server-side only** – the URL never reaches the browser.
-5. Only known calendar domains are allowed (SSRF protection). Allow custom servers via `allowedHosts`:
+5. Only known calendar domains are allowed (SSRF protection): Google, Outlook, Yahoo, iCloud (`*.icloud.com`), and custom hosts via `allowedHosts`:
    ```js
    allowedHosts: ["my-calendar.example.com"],
    ```

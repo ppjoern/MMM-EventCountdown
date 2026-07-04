@@ -52,12 +52,14 @@ Module.register("MMM-EventCountdown", {
 	updateTimer: null,
 	fetchTimer: null,
 
+	/** Start periodic calendar fetch (server) and DOM refresh (browser). */
 	start () {
 		this.requestEvents();
 		this.fetchTimer = setInterval(() => this.requestEvents(), this.config.fetchInterval);
 		this.updateTimer = setInterval(() => this.updateDom(), this.config.customInterval);
 	},
 
+	/** Clear timers when MagicMirror unloads the module. */
 	stop () {
 		if (this.fetchTimer) clearInterval(this.fetchTimer);
 		if (this.updateTimer) clearInterval(this.updateTimer);
@@ -77,7 +79,10 @@ Module.register("MMM-EventCountdown", {
 		}
 	},
 
-	/** Pick the next relevant event from the fetched list. */
+	/**
+	 * Pick the next relevant event from the fetched list.
+	 * Skips all-day entries and events that already ended; keeps events still running.
+	 */
 	processEvents (events) {
 		if (!Array.isArray(events) || events.length === 0) {
 			this.eventState.hasEvent = false;
@@ -90,6 +95,7 @@ Module.register("MMM-EventCountdown", {
 		const filtered = events
 			.filter((event) => {
 				if (event.isFullDay) return false;
+				// Include upcoming events and events currently in progress
 				return event.startDate > now || event.endDate > now;
 			})
 			.sort((a, b) => a.startDate - b.startDate);
@@ -119,6 +125,8 @@ Module.register("MMM-EventCountdown", {
 		const size = this.config.size || "medium";
 		const groupGap = Number(this.config.groupGap);
 		wrapper.className = `event-countdown event-countdown--${size}`;
+
+		// Layout tokens consumed by MMM-EventCountdown.css (--ec-gap, --ec-unit-width, --ec-scale)
 		if (this.isDebugBorders()) {
 			wrapper.classList.add("event-countdown--debug");
 			wrapper.setAttribute("data-ec-debug", "1");
@@ -142,6 +150,7 @@ Module.register("MMM-EventCountdown", {
 
 		const isRunning = this.eventState.isRunning;
 		const now = Math.floor(Date.now() / 1000);
+		// Count down to start while waiting; count down to end while the event runs
 		const timeDiff = isRunning
 			? this.eventState.endDate - now
 			: this.eventState.startDate - now;
@@ -156,6 +165,7 @@ Module.register("MMM-EventCountdown", {
 
 		let values;
 		let labels;
+		// More than 24 h left → show days/hours/minutes; otherwise hours/minutes/seconds
 		if (diffDaysNum > 0) {
 			values = [pad(diffDaysNum), pad(Math.floor((timeDiff % 86400) / 3600)), pad(Math.floor((timeDiff % 3600) / 60))];
 			labels = [this.config.daysLabel, this.config.hoursLabel, this.config.minutesLabel];
@@ -175,6 +185,7 @@ Module.register("MMM-EventCountdown", {
 		}
 
 		for (let i = 0; i < 3; i++) {
+			// Colon sits inside groupGap width so spacing is not doubled (see CSS)
 			if (i > 0 && this.config.showColons) {
 				const sep = document.createElement("div");
 				sep.className = "event-countdown__sep";
@@ -203,6 +214,7 @@ Module.register("MMM-EventCountdown", {
 		return wrapper;
 	},
 
+	/** Safe DOM helper – always uses textContent to avoid XSS from calendar titles. */
 	el (tag, className, text) {
 		const node = document.createElement(tag);
 		if (className) node.className = className;
@@ -299,8 +311,13 @@ Module.register("MMM-EventCountdown", {
 		return Number.isFinite(scale) && scale > 0 ? scale : 1;
 	},
 
+	/**
+	 * Traffic-light image under the countdown (images/lights_r*.png / lights_g*.png).
+	 * Index 1–5 maps to remaining minutes: ≤3 min uses r2–r4, otherwise r5/g5.
+	 */
 	createTrafficLight (timeDiff, isRunning) {
 		const remainMinutes = Math.max(0, Math.floor(timeDiff / 60));
+		// 4 min → index 5, 3 min → 4, 2 min → 3, 1 min → 2, 0 min → 2 (clamped)
 		const lightIndex = Math.min(5, Math.max(1, remainMinutes <= 3 ? remainMinutes + 1 : 5));
 		const prefix = isRunning ? "lights_g" : "lights_r";
 
@@ -314,6 +331,10 @@ Module.register("MMM-EventCountdown", {
 		return wrap;
 	},
 
+	/**
+	 * Urgency colors for countdown digits (original ppjoern logic).
+	 * Uses sequential if-blocks – later conditions override earlier ones.
+	 */
 	getCountdownColor (timeDiff, isRunning) {
 		if (!this.config.useUrgencyColors) {
 			return "#ffffff";
