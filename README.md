@@ -1,17 +1,42 @@
 # MMM-EventCountdown
 
-Countdown to the next calendar event for [MagicMirror²](https://github.com/MichMich/MagicMirror/).
+Countdown zum nächsten Kalendertermin für [MagicMirror²](https://github.com/MichMich/MagicMirror/).
 
-The module includes a **server-side calendar fetcher** (`node_helper.js`) so calendar URLs never reach the browser.
+Das Modul holt Kalenderdaten **serverseitig** über einen `node_helper` – die privaten Kalender-URLs landen nie im Browser.
 
-## Screenshots
-
-![Screenshot](screenshots/Screenshot_start_5r_green.png)
-![Screenshot](screenshots/Screenshot_running_g5.png)
+![Screenshot Start](screenshots/Screenshot_start_5r_green.png)
+![Screenshot Laufend](screenshots/Screenshot_running_g5.png)
 
 ---
 
-## Installation
+## Was macht das Modul?
+
+- Liest ICS-Kalender (Google, Outlook, Yahoo, iCloud) ein
+- Zeigt den **nächsten Termin** mit Countdown an (Tage/Stunden/Minuten oder Stunden/Minuten/Sekunden)
+- Erkennt **laufende Termine** („is running“ / „läuft gerade“)
+- Optionale **Ampel-Grafik** unter dem Countdown
+- **Dringlichkeitsfarben** je nach verbleibender Zeit (grün → orange)
+- Responsive Größe per CSS `clamp(vmin)` – passt sich dem Display an
+
+---
+
+## Installation auf dem Raspberry Pi
+
+### Voraussetzungen
+
+| Voraussetzung | Hinweis |
+|---------------|---------|
+| Raspberry Pi (3/4/5 empfohlen) | MagicMirror² läuft auch auf Pi Zero, ist aber langsamer |
+| MagicMirror² installiert | Offizielle Anleitung: [MagicMirror Installation](https://docs.magicmirror.builders/getting-started/installation.html) |
+| Node.js ≥ 18 | Wird mit MagicMirror mitgeliefert; prüfen mit `node -v` |
+| Internetzugang | Kalender werden per HTTPS abgerufen |
+| Kalender-ICS-URL | Geheimer Link aus Google/iCloud/Outlook (siehe unten) |
+
+> **Hinweis:** Falls MagicMirror noch nicht installiert ist, zuerst die [offizielle Pi-Installation](https://docs.magicmirror.builders/getting-started/installation.html) durchführen. Danach dieses Modul ergänzen.
+
+### Schritt 1: Modul herunterladen
+
+Per SSH auf den Pi verbinden und das Modul klonen:
 
 ```bash
 cd ~/MagicMirror/modules
@@ -20,47 +45,58 @@ cd MMM-EventCountdown
 npm install
 ```
 
----
+`npm install` installiert die Abhängigkeit `node-ical` zum Parsen der ICS-Dateien.
 
-## Configure calendar URLs
+### Schritt 2: Kalender-URL sicher hinterlegen
 
-> **Do NOT put calendar URLs in module files** (`MMM-EventCountdown.js`, `node_helper.js`).
-> Configure them in **two places** in the MagicMirror main config:
+**Kalender-URLs gehören nicht in den Modul-Code**, sondern in die MagicMirror-Konfiguration.
 
-### Step 1: Add the secret URL to `config.env`
+#### 2a) Geheime URL in `config.env` eintragen
 
-File: **`~/MagicMirror/config/config.env`**
+Datei: **`~/MagicMirror/config/config.env`**
+
+Falls die Datei noch nicht existiert, anlegen:
 
 ```bash
-# Google Calendar – private ICS URL (Google Calendar → Settings → Integrate calendar)
-SECRET_CAL_URL_1="https://calendar.google.com/calendar/ical/your.email@gmail.com/private-abc123def456/basic.ics"
+nano ~/MagicMirror/config/config.env
+```
 
-# Optional: iCloud public calendar
+Inhalt (Beispiel):
+
+```bash
+# Google Kalender – private ICS-URL
+# Google Kalender → ⚙ Einstellungen → Kalender auswählen → „Geheime Adresse im iCal-Format“
+SECRET_CAL_URL_1="https://calendar.google.com/calendar/ical/deine.email@gmail.com/private-abc123def456/basic.ics"
+
+# Optional: zweiter Kalender (z. B. iCloud)
 SECRET_CAL_URL_2="https://pXX-caldav.icloud.com/published/2/..."
 ```
 
-> **Where to find the URL**
-> - **Google Calendar:** Calendar → ⚙ Settings → select calendar → "Secret address in iCal format" → copy URL
-> - **Outlook/Office365:** Calendar → Settings → Shared calendars → Publish → ICS link
-> - **Apple iCloud:** Calendar app → Calendar → Share Calendar → Public Calendar → Copy Link (host looks like `pXX-caldav.icloud.com`)
->
-> The URL contains a **secret token** – treat it like a password!
+**Wo finde ich die URL?**
 
-### Step 2: Add the module to `config.js`
+| Anbieter | Pfad zur ICS-URL |
+|----------|------------------|
+| **Google Kalender** | Kalender → ⚙ Einstellungen → Kalender wählen → „Geheime Adresse im iCal-Format“ |
+| **Outlook / Office 365** | Kalender → Einstellungen → Geteilte Kalender → Veröffentlichen → ICS-Link |
+| **Apple iCloud** | Kalender-App → Kalender teilen → Öffentlicher Kalender → Link kopieren (Host: `pXX-caldav.icloud.com`) |
 
-File: **`~/MagicMirror/config/config.js`**
+> Die URL enthält ein **Geheim-Token** – wie ein Passwort behandeln!
 
-Root-level in `config.js` (once):
+#### 2b) Modul in `config.js` eintragen
+
+Datei: **`~/MagicMirror/config/config.js`**
+
+Am **Root-Level** von `config.js` (einmalig):
 
 ```js
 let config = {
-  hideConfigSecrets: true,
+  hideConfigSecrets: true,   // URLs nicht im Browser sichtbar machen
   // ...
   modules: [ /* … */ ],
 };
 ```
 
-Full module block (add to `modules: [ ... ]`):
+Modul-Block in das `modules`-Array einfügen:
 
 ```js
 {
@@ -68,208 +104,253 @@ Full module block (add to `modules: [ ... ]`):
   position: "middle_center",
 
   config: {
-    // --- Calendars (URLs in config.env, reference only here!) ---
     calendars: [
       {
-        name: "My Calendar",
+        name: "Mein Kalender",
         url: "${SECRET_CAL_URL_1}",
         fetchTimeout: 30000,
       },
     ],
     allowedHosts: [],
 
-    // --- Refresh ---
-    fetchInterval: 60000,   // reload calendars (ms)
-    customInterval: 1000,   // countdown tick (ms)
+    fetchInterval: 60000,   // Kalender neu laden (ms)
+    customInterval: 1000,   // Countdown-Tick (ms)
 
-    // --- Display ---
     showLight: true,
     showColons: false,      // true = 05:23:45  |  false = 052345
-    useUrgencyColors: true, // urgency colors by remaining time | false = always white
+    useUrgencyColors: true,
 
     size: "xlarge",         // small | medium | large | xlarge
-    unitWidth: 2.8,         // width of each digit group (ch)
-    groupGap: 0.5,          // gap between groups (ch)
-    scale: 1,               // optional global size multiplier
+    unitWidth: 2.8,
+    groupGap: 0.5,
+    scale: 1,
 
-    showDebugBorders: false, // layout debug frames (see below)
-
-    // --- Labels ---
-    daysLabel: "DAYS",
-    hoursLabel: "HOURS",
-    minutesLabel: "MINUTES",
-    secondsLabel: "SECONDS",
-    noEventText: "NO SCHEDULED EVENT!",
-    runningText: "is running",
-    startsInText: "starts in",
+    daysLabel: "TAGE",
+    hoursLabel: "STUNDEN",
+    minutesLabel: "MINUTEN",
+    secondsLabel: "SEKUNDEN",
+    noEventText: "KEIN TERMIN GEPLANT!",
+    runningText: "läuft gerade",
+    startsInText: "beginnt in",
   },
 },
 ```
 
-> The same template is available as `config.example.js` in the module folder.
+> Eine vollständige Vorlage liegt als `config.example.js` im Modul-Ordner.
 
-Minimal example:
+**Minimal-Konfiguration:**
 
 ```js
 {
   module: "MMM-EventCountdown",
   position: "middle_center",
   config: {
-    calendars: [{ name: "My Calendar", url: "${SECRET_CAL_URL_1}" }],
+    calendars: [{ name: "Mein Kalender", url: "${SECRET_CAL_URL_1}" }],
     size: "xlarge",
-    showColons: false,
     showLight: true,
   },
 },
 ```
 
-### Summary: where things go
+### Schritt 3: MagicMirror neu starten
 
-| What | Where | Example |
-|------|-------|---------|
-| **Real calendar URL** (secret) | `~/MagicMirror/config/config.env` | `SECRET_CAL_URL_1="https://calendar.google.com/..."` |
-| **Reference to the URL** | `~/MagicMirror/config/config.js` → `calendars[].url` | `url: "${SECRET_CAL_URL_1}"` |
-| **Enable secret protection** | `~/MagicMirror/config/config.js` (root level) | `hideConfigSecrets: true` |
-| **Module code** | `modules/MMM-EventCountdown/` | ❌ Do not put URLs here! |
+```bash
+# Wenn MagicMirror als systemd-Dienst läuft:
+sudo systemctl restart MagicMirror
 
-### Security notes
+# Oder manuell:
+cd ~/MagicMirror
+npm run start
+```
 
-1. Set **`hideConfigSecrets: true`** – prevents URLs from appearing in the browser (`/config`).
-2. Use the **`SECRET_` prefix** for all calendar URLs in `config.env`.
-3. Set **`ipWhitelist`** in `config.js` so only trusted devices can access the mirror:
-   ```js
-   ipWhitelist: ["127.0.0.1", "::ffff:127.0.0.1", "::1", "192.168.1.0/24"],
-   ```
-4. The `node_helper` fetches calendars **server-side only** – the URL never reaches the browser.
-5. Only known calendar domains are allowed (SSRF protection): Google, Outlook, Yahoo, iCloud (`*.icloud.com`), and custom hosts via `allowedHosts`:
-   ```js
-   allowedHosts: ["my-calendar.example.com"],
-   ```
+Beim Start sollte in den Logs erscheinen:
+
+```
+[MMM-EventCountdown] node_helper started – calendar fetch runs server-side.
+```
+
+Logs prüfen:
+
+```bash
+# systemd:
+journalctl -u MagicMirror -f
+
+# oder in ~/MagicMirror/logs/
+```
+
+### Schritt 4: Im Browser testen
+
+MagicMirror im Browser öffnen (Standard: `http://<pi-ip>:8080`).
+
+- Countdown sichtbar → alles ok
+- „KEIN TERMIN GEPLANT!“ → Kalender leer, URL falsch, oder nur Ganztages-Termine vorhanden
+- Modul fehlt komplett → `config.js` prüfen, MagicMirror neu starten
 
 ---
 
-## Configuration options
+## Übersicht: Wo gehört was hin?
 
-### Calendar & security
+| Was | Wo | Beispiel |
+|-----|----|----------|
+| **Echte Kalender-URL** (Geheimnis) | `~/MagicMirror/config/config.env` | `SECRET_CAL_URL_1="https://calendar.google.com/..."` |
+| **Referenz auf die URL** | `~/MagicMirror/config/config.js` → `calendars[].url` | `url: "${SECRET_CAL_URL_1}"` |
+| **Secret-Schutz aktivieren** | `~/MagicMirror/config/config.js` (Root) | `hideConfigSecrets: true` |
+| **Modul-Code** | `modules/MMM-EventCountdown/` | ❌ Keine URLs hier eintragen! |
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `calendars` | Array of `{ name, url, fetchTimeout? }` | `[]` |
-| `calendars[].name` | Display name (logs only) | – |
-| `calendars[].url` | Env reference, e.g. `"${SECRET_CAL_URL_1}"` | – |
-| `calendars[].fetchTimeout` | Timeout per calendar fetch (ms) | `30000` |
-| `allowedHosts` | Additional allowed domains (SSRF whitelist) | `[]` |
-| `fetchInterval` | Calendar reload interval (ms) | `60000` |
-| `customInterval` | Countdown update interval (ms) | `1000` |
+---
 
-### Display
+## Konfigurationsoptionen
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `size` | Size preset: `small`, `medium`, `large`, `xlarge` | `"medium"` |
-| `unitWidth` | Width of each digit group in `ch` | `2.8` |
-| `groupGap` | Gap between digit groups in `ch` | `0.5` |
-| `showColons` | Colons between groups (`05:23:45`) | `false` |
-| `showLight` | Traffic-light graphic below the countdown | `false` |
-| `useUrgencyColors` | Colors by remaining time (green → orange) | `true` |
-| `valueSize` | Fixed font size (e.g. `"12rem"`) – single display only | `null` |
+### Kalender & Sicherheit
 
-### Scaling (optional)
+| Option | Beschreibung | Standard |
+|--------|--------------|----------|
+| `calendars` | Array aus `{ name, url, fetchTimeout? }` | `[]` |
+| `calendars[].name` | Anzeigename (nur Logs) | – |
+| `calendars[].url` | Env-Referenz, z. B. `"${SECRET_CAL_URL_1}"` | – |
+| `calendars[].fetchTimeout` | Timeout pro Kalender-Abruf (ms) | `30000` |
+| `allowedHosts` | Zusätzliche erlaubte Domains (SSRF-Schutz) | `[]` |
+| `fetchInterval` | Kalender-Neulade-Intervall (ms) | `60000` |
+| `customInterval` | Countdown-Aktualisierung (ms) | `1000` |
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `scale` | Global multiplier on the CSS clamp size | `1` |
+### Anzeige
 
-Base size comes from **CSS `clamp(vmin)`** and adapts per browser automatically. `scale` is for fine-tuning only.
+| Option | Beschreibung | Standard |
+|--------|--------------|----------|
+| `size` | Größe: `small`, `medium`, `large`, `xlarge` | `"medium"` |
+| `unitWidth` | Spaltenbreite pro Zifferngruppe (`ch`) | `2.8` |
+| `groupGap` | Abstand zwischen Gruppen (`ch`) | `0.5` |
+| `showColons` | Doppelpunkte zwischen Gruppen | `false` |
+| `showLight` | Ampel-Grafik unter dem Countdown | `false` |
+| `useUrgencyColors` | Farben nach verbleibender Zeit | `true` |
+| `scale` | Globaler Größen-Multiplikator | `1` |
 
-| Preset | CSS formula (digit height) |
-|--------|----------------------------|
+### Größen-Presets
+
+| Preset | CSS-Formel (Ziffernhöhe) |
+|--------|--------------------------|
 | `small` | `clamp(4vmin, 8vmin, 15vmin)` |
 | `medium` | `clamp(5vmin, 11vmin, 20vmin)` |
 | `large` | `clamp(6vmin, 13vmin, 26vmin)` |
 | `xlarge` | `clamp(8vmin, 17vmin, 34vmin)` |
 
-### Text labels
+### Texte (Labels)
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `daysLabel` | Days label | `"DAYS"` |
-| `hoursLabel` | Hours label | `"HOURS"` |
-| `minutesLabel` | Minutes label | `"MINUTES"` |
-| `secondsLabel` | Seconds label | `"SECONDS"` |
-| `noEventText` | Text when no event is found | `"NO SCHEDULED EVENT!"` |
-| `runningText` | Text while event is running | `"is running"` |
-| `startsInText` | Text before event starts | `"starts in"` |
+| Option | Standard |
+|--------|----------|
+| `daysLabel` | `"DAYS"` |
+| `hoursLabel` | `"HOURS"` |
+| `minutesLabel` | `"MINUTES"` |
+| `secondsLabel` | `"SECONDS"` |
+| `noEventText` | `"NO SCHEDULED EVENT!"` |
+| `runningText` | `"is running"` |
+| `startsInText` | `"starts in"` |
 
-### Debug
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `showDebugBorders` | Colored outlines around layout cells | `false` |
-
-Alternatives without editing `config.js`:
-
-- URL: `http://<mirror-ip>:8080/?debugBorders=1`
-- Browser console: `localStorage.setItem("MMM-EventCountdown-debug","1"); location.reload();`
+Alle Texte sind frei anpassbar – z. B. auf Deutsch (siehe Beispiel oben).
 
 ---
 
-## Fine-tuning tips
+## Fehlerbehebung auf dem Pi
 
-### Size
+### „Could not resolve URL for calendar …"
 
-```js
-size: "xlarge",   // main control – scales with viewport (vmin)
-```
+- `config.env` existiert und enthält `SECRET_CAL_URL_1=...`?
+- Variable in `config.js` exakt so referenziert: `"${SECRET_CAL_URL_1}"`?
+- MagicMirror nach Änderungen neu gestartet?
 
-### Spacing between digit groups
+### „Host … is not in the allowedHosts whitelist"
 
-```js
-groupGap: 0.5,    // smaller = tighter  |  larger = wider
-unitWidth: 2.8,   // column width per group (2 digits + padding)
-```
+Der Kalender-Host ist nicht in der Whitelist. Standardmäßig erlaubt:
 
-With `showColons: true`, the colon sits **inside** the `groupGap` width – spacing is not doubled.
+- `calendar.google.com`, `outlook.office365.com`, `outlook.live.com`
+- `calendar.yahoo.com`, `*.icloud.com`
 
-### Mixed displays (browser + HDMI)
-
-One `config.js` for all clients. Each browser calculates size from its own viewport:
+Eigene Server ergänzen:
 
 ```js
-size: "xlarge",
-scale: 1,         // optional fine-tuning if needed
+allowedHosts: ["mein-kalender.example.com"],
 ```
 
-### Colors
+### „HTTP 403/404 while fetching calendar"
 
-- `useUrgencyColors: true` – countdown digits change by remaining time; running events are green
-- Title and subtitle ("starts in" / "is running") are always white
-- With `showColons: true`, colons use the same color as the digits
+- ICS-URL im Browser testen (am PC, nicht am Spiegel!)
+- Bei Google: „Geheime Adresse“ neu generieren, falls widerrufen
+- Bei iCloud: Kalender muss als „öffentlich“ geteilt sein
+
+### „NO SCHEDULED EVENT!" / „KEIN TERMIN GEPLANT!"
+
+- Nur **Termine mit Uhrzeit** werden gezählt (Ganztages-Events werden übersprungen)
+- Termine, die vor mehr als 24 h geendet sind, werden ignoriert
+- Kalender wirklich Termine in der Zukunft?
+
+### Modul lädt nicht / npm-Fehler
+
+```bash
+cd ~/MagicMirror/modules/MMM-EventCountdown
+rm -rf node_modules
+npm install
+```
+
+Node-Version prüfen (≥ 18 empfohlen):
+
+```bash
+node -v
+```
+
+### Performance auf älteren Pis
+
+- `fetchInterval` erhöhen (z. B. `120000` = alle 2 Minuten)
+- Nur einen Kalender einbinden
+- `size: "large"` statt `"xlarge"` verwenden
 
 ---
 
-## Architecture
+## Sicherheit
+
+1. **`hideConfigSecrets: true`** setzen – verhindert, dass URLs im Browser unter `/config` sichtbar sind
+2. **`SECRET_`-Präfix** für alle Kalender-URLs in `config.env` verwenden
+3. **`ipWhitelist`** in `config.js` einschränken:
+   ```js
+   ipWhitelist: ["127.0.0.1", "::ffff:127.0.0.1", "::1", "192.168.1.0/24"],
+   ```
+4. Kalender-Abruf läuft **nur serverseitig** – die URL erreicht nie den Browser
+5. SSRF-Schutz: Nur bekannte Kalender-Domains + `allowedHosts` sind erlaubt
+
+---
+
+## Architektur
 
 ```
 config.env (SECRET_CAL_URL_1)  ──┐
 config.js  (calendars[].url)   ──┤
                                    ▼
-                          node_helper.js  (server, Node.js)
-                          ├── resolve URL from process.env
-                          ├── fetch ICS feed (HTTPS only)
-                          ├── check SSRF whitelist
-                          └── parse events (node-ical)
+                          node_helper.js  (Server, Node.js)
+                          ├── URL aus process.env auflösen
+                          ├── ICS-Feed abrufen (HTTPS)
+                          ├── SSRF-Whitelist prüfen
+                          └── Termine parsen (node-ical)
                                    │
                           Socket: "EVENTS"
                                    ▼
-                          MMM-EventCountdown.js  (browser)
-                          ├── filter next event
-                          ├── compute countdown
-                          └── build DOM safely (textContent)
+                          MMM-EventCountdown.js  (Browser)
+                          ├── nächsten Termin filtern
+                          ├── Countdown berechnen
+                          └── DOM sicher aufbauen (textContent)
 ```
 
 ---
 
-## License
+## Modul aktualisieren
+
+```bash
+cd ~/MagicMirror/modules/MMM-EventCountdown
+git pull
+npm install
+sudo systemctl restart MagicMirror
+```
+
+---
+
+## Lizenz
 
 MIT
