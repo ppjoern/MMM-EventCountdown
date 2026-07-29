@@ -35,7 +35,7 @@ Module.register("MMM-EventCountdown", {
 		scale: 1,                  // Manual multiplier on the clamp-based size
 		showDebugBorders: false,
 		groupGap: 0.5,
-		fontWeight: "thin",          // "thin" | "medium" | "bold"
+		fontWeight: "thin",          // "thin" | "medium" | "bold" – countdown digits only
 		noEventText: "NO SCHEDULED EVENT!",
 		runningText: "is running",
 		startsInText: "starts in",
@@ -148,7 +148,7 @@ Module.register("MMM-EventCountdown", {
 		const weightClass = this.getWeightClass();
 
 		if (!this.eventState.hasEvent) {
-			wrapper.appendChild(this.el("div", `event-countdown__title light ${weightClass}`, this.config.noEventText));
+			wrapper.appendChild(this.el("div", "event-countdown__title light thin", this.config.noEventText));
 			return wrapper;
 		}
 
@@ -160,8 +160,8 @@ Module.register("MMM-EventCountdown", {
 			: this.eventState.startDate - now;
 		const color = this.getCountdownColor(timeDiff, isRunning);
 
-		wrapper.appendChild(this.el("div", `event-countdown__title light ${weightClass}`, (this.eventState.title || "").toUpperCase()));
-		wrapper.appendChild(this.el("div", `event-countdown__subtitle light ${weightClass}`,
+		wrapper.appendChild(this.el("div", "event-countdown__title light thin", (this.eventState.title || "").toUpperCase()));
+		wrapper.appendChild(this.el("div", "event-countdown__subtitle light thin",
 			isRunning ? this.config.runningText : this.config.startsInText));
 
 		const diffDaysNum = Math.floor(timeDiff / 86400);
@@ -205,7 +205,7 @@ Module.register("MMM-EventCountdown", {
 			const value = this.el("span", `event-countdown__value ${weightClass}`, values[i]);
 			value.style.color = color;
 			column.appendChild(value);
-			column.appendChild(this.el("span", `event-countdown__label light dimmed ${weightClass}`, labels[i]));
+			column.appendChild(this.el("span", "event-countdown__label light dimmed", labels[i]));
 			timer.appendChild(column);
 		}
 
@@ -309,13 +309,13 @@ Module.register("MMM-EventCountdown", {
 		document.head.appendChild(style);
 	},
 
-	/** MagicMirror font-weight class for the configured weight. */
+	/** MagicMirror font-weight class for countdown digits. */
 	getWeightClass () {
 		const map = { thin: "thin", medium: "normal", bold: "bold" };
 		return map[this.config.fontWeight] || "thin";
 	},
 
-	/** Apply font-weight modifier class from config (thin | medium | bold). */
+	/** Apply font-weight modifier for countdown digits (thin | medium | bold). */
 	applyFontWeight (wrapper) {
 		const weight = ["thin", "medium", "bold"].includes(this.config.fontWeight)
 			? this.config.fontWeight

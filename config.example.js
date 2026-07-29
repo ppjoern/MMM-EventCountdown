@@ -22,7 +22,7 @@
 		groupGap: 0.5,           // gap between groups (ch)
 		scale: 1,                // optional global size multiplier
 
-		fontWeight: "thin",      // "thin" | "medium" | "bold"
+		fontWeight: "thin",      // "thin" | "medium" | "bold" – countdown digits only
 
 		showDebugBorders: false,
 

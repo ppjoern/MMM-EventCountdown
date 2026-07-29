@@ -61,21 +61,15 @@
 	--ec-value-fluid: clamp(8vmin, 17vmin, 34vmin);
 }
 
-/* Font-weight presets (config: fontWeight – thin | medium | bold) */
+/* Font-weight presets – countdown digits only (config: fontWeight) */
 
-.event-countdown--weight-medium .event-countdown__title,
-.event-countdown--weight-medium .event-countdown__subtitle,
 .event-countdown--weight-medium .event-countdown__value,
-.event-countdown--weight-medium .event-countdown__colon,
-.event-countdown--weight-medium .event-countdown__label {
+.event-countdown--weight-medium .event-countdown__colon {
 	font-weight: 500;
 }
 
-.event-countdown--weight-bold .event-countdown__title,
-.event-countdown--weight-bold .event-countdown__subtitle,
 .event-countdown--weight-bold .event-countdown__value,
-.event-countdown--weight-bold .event-countdown__colon,
-.event-countdown--weight-bold .event-countdown__label {
+.event-countdown--weight-bold .event-countdown__colon {
 	font-weight: 700;
 }
 

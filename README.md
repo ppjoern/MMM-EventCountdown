@@ -92,7 +92,7 @@ Full module block (add to `modules: [ ... ]`):
     groupGap: 0.5,          // gap between groups (ch)
     scale: 1,               // optional global size multiplier
 
-    fontWeight: "thin",     // "thin" | "medium" | "bold"
+    fontWeight: "thin",     // "thin" | "medium" | "bold" – countdown digits only
 
     showDebugBorders: false, // layout debug frames (see below)
 
@@ -175,7 +175,7 @@ Minimal example:
 | `showLight` | Traffic-light graphic below the countdown | `false` |
 | `useUrgencyColors` | Colors by remaining time (green → orange) | `true` |
 | `valueSize` | Fixed font size (e.g. `"12rem"`) – single display only | `null` |
-| `fontWeight` | Typography weight: `"thin"`, `"medium"`, or `"bold"` | `"thin"` |
+| `fontWeight` | Countdown digit weight: `"thin"`, `"medium"`, or `"bold"` (title/subtitle/labels unchanged) | `"thin"` |
 
 ### Scaling (optional)
 
@@ -236,7 +236,7 @@ With `showColons: true`, the colon sits **inside** the `groupGap` width – spac
 
 ### Typography
 
-Default typography uses the thin font (weight 100). Other weights:
+The countdown digits (and colons, if enabled) can use a different font weight. Title, subtitle, and labels always stay thin.
 
 ```js
 fontWeight: "medium",   // thin (default) | medium | bold
