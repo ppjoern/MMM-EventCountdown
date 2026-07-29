@@ -92,8 +92,7 @@ Full module block (add to `modules: [ ... ]`):
     groupGap: 0.5,          // gap between groups (ch)
     scale: 1,               // optional global size multiplier
 
-    fontWeight: "thin",     // "thin" | "bold" – bold uses letter-spacing
-    letterSpacing: null,    // e.g. "0.05em" – null = auto (0.05em when bold)
+    fontWeight: "thin",     // "thin" | "medium" | "bold"
 
     showDebugBorders: false, // layout debug frames (see below)
 
@@ -176,8 +175,7 @@ Minimal example:
 | `showLight` | Traffic-light graphic below the countdown | `false` |
 | `useUrgencyColors` | Colors by remaining time (green → orange) | `true` |
 | `valueSize` | Fixed font size (e.g. `"12rem"`) – single display only | `null` |
-| `fontWeight` | Typography weight: `"thin"` or `"bold"` (bold adds letter-spacing) | `"thin"` |
-| `letterSpacing` | Custom letter-spacing (e.g. `"0.05em"`); `null` = auto | `null` |
+| `fontWeight` | Typography weight: `"thin"`, `"medium"`, or `"bold"` | `"thin"` |
 
 ### Scaling (optional)
 
@@ -238,14 +236,11 @@ With `showColons: true`, the colon sits **inside** the `groupGap` width – spac
 
 ### Typography
 
-Default typography uses the thin MagicMirror font (weight 100). For bold text with letter-spacing:
+Default typography uses the thin font (weight 100). Other weights:
 
 ```js
-fontWeight: "bold",       // switches from thin to bold
-letterSpacing: "0.05em",  // optional – defaults to 0.05em when bold
+fontWeight: "medium",   // thin (default) | medium | bold
 ```
-
-Leave `letterSpacing` at `null` to use the automatic default.
 
 ### Mixed displays (browser + HDMI)
 

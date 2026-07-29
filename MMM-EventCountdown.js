@@ -35,8 +35,7 @@ Module.register("MMM-EventCountdown", {
 		scale: 1,                  // Manual multiplier on the clamp-based size
 		showDebugBorders: false,
 		groupGap: 0.5,
-		fontWeight: "thin",          // "thin" | "bold" – bold enables letter-spacing
-		letterSpacing: null,         // Custom letter-spacing (e.g. "0.05em"); null = auto
+		fontWeight: "thin",          // "thin" | "medium" | "bold"
 		noEventText: "NO SCHEDULED EVENT!",
 		runningText: "is running",
 		startsInText: "starts in",
@@ -144,7 +143,7 @@ Module.register("MMM-EventCountdown", {
 		} else {
 			wrapper.style.setProperty("--ec-scale", String(this.getScale()));
 		}
-		this.applyFontSettings(wrapper);
+		this.applyFontWeight(wrapper);
 
 		const weightClass = this.getWeightClass();
 
@@ -310,26 +309,18 @@ Module.register("MMM-EventCountdown", {
 		document.head.appendChild(style);
 	},
 
-	/** MagicMirror font-weight class: "thin" (default) or "bold". */
+	/** MagicMirror font-weight class for the configured weight. */
 	getWeightClass () {
-		return this.config.fontWeight === "bold" ? "bold" : "thin";
+		const map = { thin: "thin", medium: "normal", bold: "bold" };
+		return map[this.config.fontWeight] || "thin";
 	},
 
-	/**
-	 * Apply font-weight and letter-spacing from config.
-	 * Bold mode adds .event-countdown--bold and sets --ec-letter-spacing (default 0.05em).
-	 */
-	applyFontSettings (wrapper) {
-		const isBold = this.config.fontWeight === "bold";
-		const spacing = this.config.letterSpacing;
-
-		if (isBold) {
-			wrapper.classList.add("event-countdown--bold");
-			wrapper.style.setProperty("--ec-letter-spacing", spacing ?? "0.05em");
-		} else if (spacing != null && spacing !== "") {
-			wrapper.style.setProperty("--ec-letter-spacing", spacing);
-			wrapper.style.setProperty("--ec-digit-spacing", spacing);
-		}
+	/** Apply font-weight modifier class from config (thin | medium | bold). */
+	applyFontWeight (wrapper) {
+		const weight = ["thin", "medium", "bold"].includes(this.config.fontWeight)
+			? this.config.fontWeight
+			: "thin";
+		wrapper.classList.add(`event-countdown--weight-${weight}`);
 	},
 
 	/** Manual scale factor applied via --ec-scale. Base size comes from CSS clamp(). */
