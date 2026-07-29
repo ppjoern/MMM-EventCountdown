@@ -22,6 +22,9 @@
 		groupGap: 0.5,           // gap between groups (ch)
 		scale: 1,                // optional global size multiplier
 
+		fontWeight: "thin",      // "thin" | "bold" – bold adds letter-spacing
+		letterSpacing: null,     // e.g. "0.05em" – null = auto (0.05em when bold)
+
 		showDebugBorders: false,
 
 		daysLabel: "DAYS",

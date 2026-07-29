@@ -18,7 +18,7 @@
  *   large  → clamp(6vmin, 13vmin, 26vmin)
  *   xlarge → clamp(8vmin, 17vmin, 34vmin)
  *
- * Fine-tuning in config.js: size, scale, unitWidth, groupGap
+ * Fine-tuning in config.js: size, scale, unitWidth, groupGap, fontWeight, letterSpacing
  * Debug borders are injected via JS (ensureDebugStyles) for higher specificity.
  * =============================================================================
  */
@@ -41,6 +41,7 @@
 	--ec-gap: 0.5ch;
 	--ec-unit-width: 2.8ch;
 	--ec-digit-spacing: -0.043em;
+	--ec-letter-spacing: 0;
 
 	box-sizing: border-box;
 	width: 100%;
@@ -61,6 +62,17 @@
 	--ec-value-fluid: clamp(8vmin, 17vmin, 34vmin);
 }
 
+/* Bold typography with letter-spacing (config: fontWeight: "bold") */
+
+.event-countdown--bold .event-countdown__title,
+.event-countdown--bold .event-countdown__subtitle,
+.event-countdown--bold .event-countdown__value,
+.event-countdown--bold .event-countdown__colon,
+.event-countdown--bold .event-countdown__label {
+	font-weight: 700;
+	letter-spacing: var(--ec-letter-spacing);
+}
+
 /* --- 3. Header --- */
 
 .event-countdown__title {
@@ -68,6 +80,7 @@
 	font-size: var(--ec-title);
 	font-weight: 100;
 	line-height: 1.2;
+	letter-spacing: var(--ec-letter-spacing);
 	max-width: 100%;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -78,6 +91,7 @@
 	color: #fff;
 	font-size: var(--ec-subtitle);
 	line-height: 1.2;
+	letter-spacing: var(--ec-letter-spacing);
 	margin-bottom: 0.15em;
 }
 
@@ -145,6 +159,7 @@
 	margin-top: 0.12em;
 	font-size: calc(1em * var(--ec-ratio-label));
 	line-height: 1.2;
+	letter-spacing: var(--ec-letter-spacing);
 	text-align: center;
 	white-space: nowrap;
 	overflow: hidden;

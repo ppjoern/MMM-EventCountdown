@@ -35,6 +35,8 @@ Module.register("MMM-EventCountdown", {
 		scale: 1,                  // Manual multiplier on the clamp-based size
 		showDebugBorders: false,
 		groupGap: 0.5,
+		fontWeight: "thin",          // "thin" | "bold" – bold enables letter-spacing
+		letterSpacing: null,         // Custom letter-spacing (e.g. "0.05em"); null = auto
 		noEventText: "NO SCHEDULED EVENT!",
 		runningText: "is running",
 		startsInText: "starts in",
@@ -142,9 +144,12 @@ Module.register("MMM-EventCountdown", {
 		} else {
 			wrapper.style.setProperty("--ec-scale", String(this.getScale()));
 		}
+		this.applyFontSettings(wrapper);
+
+		const weightClass = this.getWeightClass();
 
 		if (!this.eventState.hasEvent) {
-			wrapper.appendChild(this.el("div", "event-countdown__title light thin", this.config.noEventText));
+			wrapper.appendChild(this.el("div", `event-countdown__title light ${weightClass}`, this.config.noEventText));
 			return wrapper;
 		}
 
@@ -156,8 +161,8 @@ Module.register("MMM-EventCountdown", {
 			: this.eventState.startDate - now;
 		const color = this.getCountdownColor(timeDiff, isRunning);
 
-		wrapper.appendChild(this.el("div", "event-countdown__title light thin", (this.eventState.title || "").toUpperCase()));
-		wrapper.appendChild(this.el("div", "event-countdown__subtitle light thin",
+		wrapper.appendChild(this.el("div", `event-countdown__title light ${weightClass}`, (this.eventState.title || "").toUpperCase()));
+		wrapper.appendChild(this.el("div", `event-countdown__subtitle light ${weightClass}`,
 			isRunning ? this.config.runningText : this.config.startsInText));
 
 		const diffDaysNum = Math.floor(timeDiff / 86400);
@@ -189,7 +194,7 @@ Module.register("MMM-EventCountdown", {
 			if (i > 0 && this.config.showColons) {
 				const sep = document.createElement("div");
 				sep.className = "event-countdown__sep";
-				const colon = this.el("span", "event-countdown__colon thin", ":");
+				const colon = this.el("span", `event-countdown__colon ${weightClass}`, ":");
 				colon.style.color = color;
 				sep.appendChild(colon);
 				timer.appendChild(sep);
@@ -198,10 +203,10 @@ Module.register("MMM-EventCountdown", {
 			const column = document.createElement("div");
 			column.className = "event-countdown__column";
 
-			const value = this.el("span", "event-countdown__value thin", values[i]);
+			const value = this.el("span", `event-countdown__value ${weightClass}`, values[i]);
 			value.style.color = color;
 			column.appendChild(value);
-			column.appendChild(this.el("span", "event-countdown__label light dimmed", labels[i]));
+			column.appendChild(this.el("span", `event-countdown__label light dimmed ${weightClass}`, labels[i]));
 			timer.appendChild(column);
 		}
 
@@ -303,6 +308,28 @@ Module.register("MMM-EventCountdown", {
 			}
 		`;
 		document.head.appendChild(style);
+	},
+
+	/** MagicMirror font-weight class: "thin" (default) or "bold". */
+	getWeightClass () {
+		return this.config.fontWeight === "bold" ? "bold" : "thin";
+	},
+
+	/**
+	 * Apply font-weight and letter-spacing from config.
+	 * Bold mode adds .event-countdown--bold and sets --ec-letter-spacing (default 0.05em).
+	 */
+	applyFontSettings (wrapper) {
+		const isBold = this.config.fontWeight === "bold";
+		const spacing = this.config.letterSpacing;
+
+		if (isBold) {
+			wrapper.classList.add("event-countdown--bold");
+			wrapper.style.setProperty("--ec-letter-spacing", spacing ?? "0.05em");
+		} else if (spacing != null && spacing !== "") {
+			wrapper.style.setProperty("--ec-letter-spacing", spacing);
+			wrapper.style.setProperty("--ec-digit-spacing", spacing);
+		}
 	},
 
 	/** Manual scale factor applied via --ec-scale. Base size comes from CSS clamp(). */
