@@ -200,6 +200,7 @@ Module.register("MMM-EventCountdown", {
 			wrapper.style.setProperty("--ec-scale", String(display.scale));
 		}
 		this.applyFontWeight(wrapper, display.fontWeight);
+		const weightClass = this.getWeightClass(display.fontWeight);
 
 		if (!this.eventState.hasEvent) {
 			wrapper.appendChild(this.el("div", "event-countdown__title light thin", this.config.noEventText));
@@ -229,7 +230,7 @@ Module.register("MMM-EventCountdown", {
 			if (i > 0 && this.config.showColons) {
 				const sep = document.createElement("div");
 				sep.className = "event-countdown__sep";
-				const colon = this.el("span", "event-countdown__colon", ":");
+				const colon = this.el("span", `event-countdown__colon ${weightClass}`, ":");
 				colon.style.color = color;
 				sep.appendChild(colon);
 				timer.appendChild(sep);
@@ -238,7 +239,7 @@ Module.register("MMM-EventCountdown", {
 			const column = document.createElement("div");
 			column.className = "event-countdown__column";
 
-			const value = this.el("span", "event-countdown__value", countdown.values[i]);
+			const value = this.el("span", `event-countdown__value ${weightClass}`, countdown.values[i]);
 			value.style.color = color;
 			column.appendChild(value);
 			column.appendChild(this.el("span", "event-countdown__label light dimmed", countdown.labels[i]));
@@ -288,6 +289,12 @@ Module.register("MMM-EventCountdown", {
 		badge.textContent = "DEBUG BORDERS ON";
 		badge.setAttribute("aria-hidden", "true");
 		return badge;
+	},
+
+	/** MagicMirror font-weight class for countdown digits. */
+	getWeightClass (fontWeight) {
+		const map = { thin: "thin", medium: "normal", bold: "bold" };
+		return map[fontWeight] || "thin";
 	},
 
 	/** Apply font-weight modifier for countdown digits (thin | medium | bold). */
