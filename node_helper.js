@@ -7,7 +7,7 @@ const {
 	resolveUrl,
 	isUrlAllowed,
 	parseEvents,
-	fetchWithValidatedRedirects,
+	fetchCalendarResponse,
 } = require("./lib/calendar.js");
 
 module.exports = NodeHelper.create({
@@ -45,7 +45,7 @@ module.exports = NodeHelper.create({
 		const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
 		try {
-			const fetched = await fetchWithValidatedRedirects(resolvedUrl, {
+			const fetched = await fetchCalendarResponse(resolvedUrl, {
 				signal: controller.signal,
 				headers: { "User-Agent": "MagicMirror-MMM-EventCountdown" },
 			}, allowedHosts, allowedSuffixes);
@@ -53,8 +53,6 @@ module.exports = NodeHelper.create({
 			if (!fetched.ok) {
 				if (fetched.reason === "redirect" || fetched.reason === "redirect-limit") {
 					Log.error(`[MMM-EventCountdown] Redirect blocked while fetching calendar "${calendarConfig.name || "unnamed"}".`);
-				} else if (fetched.reason === "whitelist") {
-					Log.error(`[MMM-EventCountdown] Redirect target host "${fetched.host}" is not allowed.`);
 				} else if (fetched.reason === "blocked") {
 					Log.error("[MMM-EventCountdown] Redirect target blocked (SSRF protection).");
 				}

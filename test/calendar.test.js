@@ -98,4 +98,10 @@ END:VCALENDAR`);
 		assert.ok(events.length >= 1);
 		assert.ok(events.some((event) => event.startDate >= Math.floor(nowMs / 1000)));
 	});
+
+	it("allows redirect targets outside the calendar host allowlist", () => {
+		const { isRedirectTargetSafe } = require("../lib/calendar.js");
+		const result = isRedirectTargetSafe("https://calendar-pa.clients6.google.com/calendar.ics");
+		assert.equal(result.ok, true);
+	});
 });

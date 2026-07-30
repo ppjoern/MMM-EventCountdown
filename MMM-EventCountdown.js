@@ -46,9 +46,18 @@ Module.register("MMM-EventCountdown", {
 	suspended: false,
 	display: null,
 
+	getCountdownLib () {
+		return window.MMMECCountdown;
+	},
+
 	/** Start periodic calendar fetch (server) and DOM refresh (browser). */
 	start () {
-		const { normalizeDisplayConfig } = window.MMMECCountdown;
+		const lib = this.getCountdownLib();
+		if (!lib) {
+			console.error("[MMM-EventCountdown] lib/countdown.js not loaded – check getScripts path.");
+			return;
+		}
+		const { normalizeDisplayConfig } = lib;
 		this.eventState = {
 			title: null,
 			startDate: null,
@@ -155,16 +164,23 @@ Module.register("MMM-EventCountdown", {
 	},
 
 	getScripts () {
-		return ["lib/countdown.js"];
+		return [this.file("lib/countdown.js")];
 	},
 
 	getDom () {
+		const lib = this.getCountdownLib();
+		if (!lib) {
+			const fallback = document.createElement("div");
+			fallback.className = "event-countdown__title light thin";
+			fallback.textContent = this.config.noEventText;
+			return fallback;
+		}
 		const {
 			computeEventPhase,
 			formatCountdown,
 			getCountdownColor,
 			normalizeDisplayConfig,
-		} = window.MMMECCountdown;
+		} = lib;
 		const display = this.display || normalizeDisplayConfig(this.config);
 		const wrapper = document.createElement("div");
 		wrapper.className = `event-countdown event-countdown--${display.size}`;
@@ -258,8 +274,11 @@ Module.register("MMM-EventCountdown", {
 			// localStorage blocked (private browsing, etc.)
 		}
 
-		const { normalizeDisplayConfig } = window.MMMECCountdown;
-		const display = this.display || normalizeDisplayConfig(this.config);
+		const lib = this.getCountdownLib();
+		if (!lib) {
+			return false;
+		}
+		const display = this.display || lib.normalizeDisplayConfig(this.config);
 		return display.showDebugBorders;
 	},
 
@@ -281,7 +300,8 @@ Module.register("MMM-EventCountdown", {
 	 * Index 1–5 maps to remaining minutes: ≤3 min uses r2–r4, otherwise r5/g5.
 	 */
 	createTrafficLight (timeDiff, isRunning) {
-		const lightIndex = window.MMMECCountdown.getTrafficLightIndex(timeDiff);
+		const lib = this.getCountdownLib();
+		const lightIndex = lib ? lib.getTrafficLightIndex(timeDiff) : 5;
 		const prefix = isRunning ? "lights_g" : "lights_r";
 
 		const wrap = document.createElement("div");
