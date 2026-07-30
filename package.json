@@ -24,13 +24,9 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test test/*.test.js",
-    "lint": "eslint ."
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "node-ical": "^0.26.1"
-  },
-  "devDependencies": {
-    "eslint": "^9.32.0"
   }
 }
