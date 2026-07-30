@@ -1,11 +1,35 @@
 {
   "name": "MMM-EventCountdown",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Count down to the next calendar event – with built-in secure calendar fetching",
   "main": "MMM-EventCountdown.js",
   "author": "ppjoern",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ppjoern/MMM-EventCountdown.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ppjoern/MMM-EventCountdown/issues"
+  },
+  "homepage": "https://github.com/ppjoern/MMM-EventCountdown#readme",
+  "keywords": [
+    "magicmirror",
+    "magicmirror2",
+    "calendar",
+    "countdown",
+    "ics"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "lint": "eslint ."
+  },
   "dependencies": {
     "node-ical": "^0.26.1"
+  },
+  "devDependencies": {
+    "eslint": "^9.32.0"
   }
-}

@@ -267,15 +267,15 @@ config.js  (calendars[].url)   ──┤
                                    ▼
                           node_helper.js  (server, Node.js)
                           ├── resolve URL from process.env
-                          ├── fetch ICS feed (HTTPS only)
+                          ├── fetch ICS feed (http/https, SSRF-checked redirects)
                           ├── check SSRF whitelist
-                          └── parse events (node-ical)
+                          └── parse events (node-ical, RRULE expansion)
                                    │
-                          Socket: "EVENTS"
+                          Socket: "EVENTS" { ok, events }
                                    ▼
                           MMM-EventCountdown.js  (browser)
                           ├── filter next event
-                          ├── compute countdown
+                          ├── compute countdown (lib/countdown.js)
                           └── build DOM safely (textContent)
 ```
 

@@ -19,7 +19,7 @@
  *   xlarge → clamp(8vmin, 17vmin, 34vmin)
  *
  * Fine-tuning in config.js: size, scale, unitWidth, groupGap, fontWeight
- * Debug borders are injected via JS (ensureDebugStyles) for higher specificity.
+ * Debug borders use .module.MMM-EventCountdown for MagicMirror-specificity.
  * =============================================================================
  */
 
@@ -182,4 +182,57 @@
 	max-width: 100%;
 	max-height: clamp(8vmin, 18vmin, 28vmin);
 	object-fit: contain;
+}
+
+/* --- 7. Debug layout frames (MagicMirror-specific overrides) --- */
+
+.module.MMM-EventCountdown .event-countdown__debug-badge {
+	display: block !important;
+	margin: 0 auto 8px !important;
+	padding: 6px 12px !important;
+	width: fit-content !important;
+	color: #000 !important;
+	background: #ffff00 !important;
+	outline: 3px solid #ff0000 !important;
+	font-size: 16px !important;
+	font-weight: 700 !important;
+	line-height: 1.2 !important;
+	letter-spacing: 0.05em !important;
+	text-transform: uppercase !important;
+}
+
+.module.MMM-EventCountdown .event-countdown--debug {
+	outline: 4px solid #ffff00 !important;
+	outline-offset: 4px !important;
+}
+
+.module.MMM-EventCountdown .event-countdown--debug .event-countdown__timer {
+	outline: 3px solid #ff9900 !important;
+	outline-offset: 2px !important;
+}
+
+.module.MMM-EventCountdown .event-countdown--debug .event-countdown__column {
+	outline: 3px solid #ff2222 !important;
+	outline-offset: 1px !important;
+	background: rgba(255, 0, 0, 0.12) !important;
+}
+
+.module.MMM-EventCountdown .event-countdown--debug .event-countdown__value {
+	outline: 2px solid #00ccff !important;
+	outline-offset: 0 !important;
+	background: rgba(0, 204, 255, 0.1) !important;
+}
+
+.module.MMM-EventCountdown .event-countdown--debug .event-countdown__label {
+	outline: 2px solid #00ff66 !important;
+	outline-offset: 0 !important;
+	background: rgba(0, 255, 102, 0.1) !important;
+}
+
+.module.MMM-EventCountdown .event-countdown--debug .event-countdown__title {
+	outline: 2px solid #ff66ff !important;
+}
+
+.module.MMM-EventCountdown .event-countdown--debug .event-countdown__subtitle {
+	outline: 2px solid #cc66ff !important;
 }
